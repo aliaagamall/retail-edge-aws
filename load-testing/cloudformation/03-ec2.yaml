@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: RetailEdge Load Testing - Application EC2
+
+Parameters:
+  DbUsername:
+    Type: String
+    Default: admin
+
+  DbPassword:
+    Type: String
+    NoEcho: true
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+
+Resources:
+
+  LoadTestAppServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.medium
+
+      ImageId: ami-0bdc7d025135d7b49
+
+      KeyName: !Ref KeyName
+
+      SubnetId:
+        Fn::ImportValue: retailedge-loadtest-public-subnet-id
+
+      SecurityGroupIds:
+        - Fn::ImportValue: retailedge-loadtest-app-sg-id
+
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-app-server
+
+      UserData:
+        Fn::Base64:
+          !Sub
+            - |
+              #!/bin/bash
+
+              set -e
+
+              dnf update -y
+
+              dnf install -y git nginx mariadb105
+
+              curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+              dnf install -y nodejs
+
+              cd /home/ec2-user
+
+              git clone https://github.com/aws-samples/aws-three-tier-web-architecture-workshop.git
+
+              cp -r \
+                aws-three-tier-web-architecture-workshop/application-code/app-tier \
+                /home/ec2-user/app-tier
+
+              chown -R ec2-user:ec2-user /home/ec2-user/app-tier
+
+              cat > /home/ec2-user/app-tier/DbConfig.js <<EOF
+              module.exports = Object.freeze({
+                  DB_HOST : '${DbHost}',
+                  DB_USER : '${DbUsername}',
+                  DB_PWD : '${DbPassword}',
+                  DB_DATABASE : 'retailedge'
+              });
+              EOF
+
+              chown ec2-user:ec2-user /home/ec2-user/app-tier/DbConfig.js
+
+              mysql \
+                -h '${DbHost}' \
+                -u '${DbUsername}' \
+                -p'${DbPassword}' \
+                retailedge <<'SQL'
+              CREATE TABLE IF NOT EXISTS transactions (
+                  id INT NOT NULL AUTO_INCREMENT,
+                  amount DECIMAL(10,2),
+                  description VARCHAR(100),
+                  PRIMARY KEY(id)
+              );
+              SQL
+
+              cd /home/ec2-user/app-tier
+
+              npm install
+
+              cat > /etc/systemd/system/retailedge-app.service <<EOF
+              [Unit]
+              Description=RetailEdge Node.js Application
+              After=network.target
+
+              [Service]
+              Type=simple
+              User=ec2-user
+              WorkingDirectory=/home/ec2-user/app-tier
+              ExecStart=/usr/bin/node /home/ec2-user/app-tier/index.js
+              Restart=always
+              RestartSec=5
+              Environment=NODE_ENV=production
+
+              [Install]
+              WantedBy=multi-user.target
+              EOF
+
+              systemctl daemon-reload
+              systemctl enable retailedge-app
+              systemctl start retailedge-app
+
+              cat > /etc/nginx/conf.d/retailedge-loadtest.conf <<EOF
+              server {
+                  listen 80;
+                  server_name _;
+
+                  location / {
+                      proxy_pass http://127.0.0.1:4000;
+                      proxy_http_version 1.1;
+
+                      proxy_set_header Host \$host;
+                      proxy_set_header X-Real-IP \$remote_addr;
+                      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto \$scheme;
+                  }
+              }
+              EOF
+
+              rm -f /etc/nginx/conf.d/default.conf
+
+              nginx -t
+
+              systemctl enable nginx
+              systemctl restart nginx
+
+            - DbHost:
+                Fn::ImportValue: retailedge-loadtest-db-endpoint
+
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 20
+            VolumeType: gp2
+            DeleteOnTermination: true
+
+Outputs:
+
+  InstanceId:
+    Description: Load test application EC2 instance ID
+    Value: !Ref LoadTestAppServer
+
+  PublicIp:
+    Description: Load test application public IP
+    Value: !GetAtt LoadTestAppServer.PublicIp
+
+  PublicDns:
+    Description: Load test application public DNS
+    Value: !GetAtt LoadTestAppServer.PublicDnsName
