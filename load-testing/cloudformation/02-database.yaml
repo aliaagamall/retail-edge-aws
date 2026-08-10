@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: RetailEdge Load Testing - RDS MySQL
+
+Parameters:
+  DbUsername:
+    Type: String
+    Default: admin
+
+  DbPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+
+Resources:
+
+  LoadTestDbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: RetailEdge load testing database subnet group
+      SubnetIds:
+        - Fn::ImportValue: retailedge-loadtest-db-subnet-a-id
+        - Fn::ImportValue: retailedge-loadtest-db-subnet-b-id
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db-subnet-group
+
+  LoadTestDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: retailedge-loadtest-db
+      Engine: mysql
+      DBInstanceClass: db.t3.medium
+      AllocatedStorage: 35
+      StorageType: gp2
+      DBName: retailedge
+      MasterUsername: !Ref DbUsername
+      MasterUserPassword: !Ref DbPassword
+      DBSubnetGroupName: !Ref LoadTestDbSubnetGroup
+      VPCSecurityGroups:
+        - Fn::ImportValue: retailedge-loadtest-db-sg-id
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 1
+      EnablePerformanceInsights: false
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db
+
+Outputs:
+
+  DbEndpoint:
+    Description: RDS endpoint
+    Value: !GetAtt LoadTestDatabase.Endpoint.Address
+    Export:
+      Name: retailedge-loadtest-db-endpoint
+
+  DbPort:
+    Description: RDS port
+    Value: !GetAtt LoadTestDatabase.Endpoint.Port
+
+  DbName:
+    Description: Database name
+    Value: retailedge
+
+  DbSubnetGroup:
+    Description: RDS subnet group
+    Value: !Ref LoadTestDbSubnetGroup
