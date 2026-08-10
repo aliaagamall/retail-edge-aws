@@ -1,0 +1,189 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: RetailEdge Load Testing - Network
+
+Resources:
+
+  LoadTestVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-vpc
+
+  LoadTestInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-igw
+
+  LoadTestIgwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      InternetGatewayId: !Ref LoadTestInternetGateway
+
+  LoadTestPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      CidrBlock: 10.20.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-public-a
+
+  LoadTestDbSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      CidrBlock: 10.20.11.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db-a
+
+  LoadTestDbSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      CidrBlock: 10.20.12.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db-b
+
+  LoadTestPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-public-rt
+
+  LoadTestPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: LoadTestIgwAttachment
+    Properties:
+      RouteTableId: !Ref LoadTestPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref LoadTestInternetGateway
+
+  LoadTestPublicRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref LoadTestPublicSubnet
+      RouteTableId: !Ref LoadTestPublicRouteTable
+
+  LoadTestDbRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref LoadTestVpc
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db-rt
+
+  LoadTestDbRouteAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref LoadTestDbSubnetA
+      RouteTableId: !Ref LoadTestDbRouteTable
+
+  LoadTestDbRouteAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref LoadTestDbSubnetB
+      RouteTableId: !Ref LoadTestDbRouteTable
+
+  LoadTestAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RetailEdge load test application server
+      VpcId: !Ref LoadTestVpc
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+      SecurityGroupEgress:
+
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-app-sg
+
+  LoadTestDbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RetailEdge load test database
+      VpcId: !Ref LoadTestVpc
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref LoadTestAppSecurityGroup
+
+      SecurityGroupEgress:
+
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Name
+          Value: retailedge-loadtest-db-sg
+
+Outputs:
+
+  VpcId:
+    Description: Load test VPC ID
+    Value: !Ref LoadTestVpc
+
+  PublicSubnetId:
+    Description: Public subnet ID
+    Value: !Ref LoadTestPublicSubnet
+    Export:
+      Name: retailedge-loadtest-public-subnet-id
+
+  DbSubnetAId:
+    Description: Private DB subnet A ID
+    Value: !Ref LoadTestDbSubnetA
+    Export:
+      Name: retailedge-loadtest-db-subnet-a-id
+
+  DbSubnetBId:
+    Description: Private DB subnet B ID
+    Value: !Ref LoadTestDbSubnetB
+    Export:
+      Name: retailedge-loadtest-db-subnet-b-id
+
+  AppSecurityGroupId:
+    Description: Application security group ID
+    Value: !Ref LoadTestAppSecurityGroup
+    Export:
+      Name: retailedge-loadtest-app-sg-id
+
+  DbSecurityGroupId:
+    Description: Database security group ID
+    Value: !Ref LoadTestDbSecurityGroup
+    Export:
+      Name: retailedge-loadtest-db-sg-id
