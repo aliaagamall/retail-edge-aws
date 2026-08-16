@@ -1,0 +1,15 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/crash.log
+terraform/crash.*.log
+
+# Terraform variables / secrets
+terraform/*.tfvars
+!terraform/*.tfvars.example
+
+# AWS credentials
+.aws/
+.env
+.env.*
