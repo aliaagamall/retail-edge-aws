@@ -1,0 +1,153 @@
+========================================
+ RetailEdge Networking Validation
+========================================
+Date: Mon Aug 17 09:31:11 EEST 2026
+
+===== 1. TERRAFORM VALIDATE =====
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+===== 2. TERRAFORM STATE =====
+module.networking.aws_internet_gateway.this
+module.networking.aws_route_table.app
+module.networking.aws_route_table.db
+module.networking.aws_route_table.public
+module.networking.aws_route_table_association.app[0]
+module.networking.aws_route_table_association.app[1]
+module.networking.aws_route_table_association.db[0]
+module.networking.aws_route_table_association.db[1]
+module.networking.aws_route_table_association.public[0]
+module.networking.aws_route_table_association.public[1]
+module.networking.aws_subnet.app[0]
+module.networking.aws_subnet.app[1]
+module.networking.aws_subnet.db[0]
+module.networking.aws_subnet.db[1]
+module.networking.aws_subnet.public[0]
+module.networking.aws_subnet.public[1]
+module.networking.aws_vpc.this
+
+===== 3. TERRAFORM OUTPUTS =====
+app_subnet_ids = [
+  "subnet-0c1a53ed39a2bf57d",
+  "subnet-09e3a50ec8f7b96ad",
+]
+db_subnet_ids = [
+  "subnet-0a06817d77340cf4e",
+  "subnet-06bea9f40ec3e47bb",
+]
+public_subnet_ids = [
+  "subnet-0cb5432ae944cecf0",
+  "subnet-0a2dab80d3dfe134f",
+]
+vpc_id = "vpc-00699a2003c9bb6d9"
+
+===== 4. VPC =====
+--------------------------------------------
+|               DescribeVpcs               |
++----------------+-------------------------+
+|  Cidr          |  10.0.0.0/16            |
+|  DNS_Hostnames |  None                   |
+|  DNS_Support   |  None                   |
+|  State         |  available              |
+|  VpcId         |  vpc-00699a2003c9bb6d9  |
++----------------+-------------------------+
+
+===== 5. SUBNETS =====
+-----------------------------------------------------------------------------------------------
+|                                       DescribeSubnets                                       |
++------------+---------------+------------------------------------+-----------+---------------+
+|     AZ     |     CIDR      |               Name                 | PublicIP  |     Tier      |
++------------+---------------+------------------------------------+-----------+---------------+
+|  us-east-1a|  10.0.21.0/24 |  retailedge-dev-db-us-east-1a      |  False    |  database     |
+|  us-east-1a|  10.0.11.0/24 |  retailedge-dev-app-us-east-1a     |  False    |  application  |
+|  us-east-1b|  10.0.12.0/24 |  retailedge-dev-app-us-east-1b     |  False    |  application  |
+|  us-east-1b|  10.0.2.0/24  |  retailedge-dev-public-us-east-1b  |  False    |  public       |
+|  us-east-1b|  10.0.22.0/24 |  retailedge-dev-db-us-east-1b      |  False    |  database     |
+|  us-east-1a|  10.0.1.0/24  |  retailedge-dev-public-us-east-1a  |  False    |  public       |
++------------+---------------+------------------------------------+-----------+---------------+
+
+===== 6. INTERNET GATEWAY =====
+----------------------------------------
+|       DescribeInternetGateways       |
++------------------------+-------------+
+|           IGW          |    State    |
++------------------------+-------------+
+|  igw-0862d3f0603d0a619 |  available  |
++------------------------+-------------+
+
+===== 7. ROUTE TABLES =====
+[
+    {
+        "RouteTableId": "rtb-0b28caf5e053b9f0f",
+        "Name": "retailedge-dev-public-rt",
+        "Routes": [
+            {
+                "CIDR": null,
+                "Gateway": "local"
+            },
+            {
+                "CIDR": null,
+                "Gateway": "igw-0862d3f0603d0a619"
+            }
+        ]
+    },
+    {
+        "RouteTableId": "rtb-03ec9da264ea3b199",
+        "Name": "retailedge-dev-app-rt",
+        "Routes": [
+            {
+                "CIDR": null,
+                "Gateway": "local"
+            }
+        ]
+    },
+    {
+        "RouteTableId": "rtb-0f17afd15e77404b0",
+        "Name": "retailedge-dev-db-rt",
+        "Routes": [
+            {
+                "CIDR": null,
+                "Gateway": "local"
+            }
+        ]
+    },
+    {
+        "RouteTableId": "rtb-05e78a373a7838b71",
+        "Name": null,
+        "Routes": [
+            {
+                "CIDR": null,
+                "Gateway": "local"
+            }
+        ]
+    }
+]
+
+===== 8. FINAL TERRAFORM PLAN =====
+[0m[1mmodule.networking.aws_vpc.this: Refreshing state... [id=vpc-00699a2003c9bb6d9][0m
+[0m[1mmodule.networking.aws_internet_gateway.this: Refreshing state... [id=igw-0862d3f0603d0a619][0m
+[0m[1mmodule.networking.aws_route_table.app: Refreshing state... [id=rtb-03ec9da264ea3b199][0m
+[0m[1mmodule.networking.aws_subnet.public[1]: Refreshing state... [id=subnet-0a2dab80d3dfe134f][0m
+[0m[1mmodule.networking.aws_route_table.db: Refreshing state... [id=rtb-0f17afd15e77404b0][0m
+[0m[1mmodule.networking.aws_subnet.app[0]: Refreshing state... [id=subnet-0c1a53ed39a2bf57d][0m
+[0m[1mmodule.networking.aws_subnet.db[0]: Refreshing state... [id=subnet-0a06817d77340cf4e][0m
+[0m[1mmodule.networking.aws_subnet.db[1]: Refreshing state... [id=subnet-06bea9f40ec3e47bb][0m
+[0m[1mmodule.networking.aws_subnet.public[0]: Refreshing state... [id=subnet-0cb5432ae944cecf0][0m
+[0m[1mmodule.networking.aws_subnet.app[1]: Refreshing state... [id=subnet-09e3a50ec8f7b96ad][0m
+[0m[1mmodule.networking.aws_route_table.public: Refreshing state... [id=rtb-0b28caf5e053b9f0f][0m
+[0m[1mmodule.networking.aws_route_table_association.app[1]: Refreshing state... [id=rtbassoc-0107e404252fb3171][0m
+[0m[1mmodule.networking.aws_route_table_association.app[0]: Refreshing state... [id=rtbassoc-0948febc662cfef36][0m
+[0m[1mmodule.networking.aws_route_table_association.db[1]: Refreshing state... [id=rtbassoc-03c7dec27427a4ba7][0m
+[0m[1mmodule.networking.aws_route_table_association.db[0]: Refreshing state... [id=rtbassoc-0185fef48cd7aac99][0m
+[0m[1mmodule.networking.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-03c5fbabce4701636][0m
+[0m[1mmodule.networking.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-0086094d9e3948729][0m
+
+[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+
+[0mTerraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
+Releasing state lock. This may take a few moments...
+
+========================================
+ VALIDATION COMPLETED
+========================================
