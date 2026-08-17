@@ -35,3 +35,12 @@ output "redis_sg_id" {
 output "endpoints_sg_id" {
   value = module.security_groups.endpoints_sg_id
 }
+
+# vpc endpints outputs
+output "interface_endpoint_ids" {
+  value = module.vpc_endpoints.interface_endpoint_ids
+}
+
+output "s3_endpoint_id" {
+  value = module.vpc_endpoints.s3_endpoint_id
+}
