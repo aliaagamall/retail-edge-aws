@@ -1,0 +1,118 @@
+=========================================
+    VPC Endpoints Validation
+=========================================
+
+VPC ID:       vpc-07a8c8c0fba7a2611
+Endpoints SG: sg-0f851673b92fd7a52
+
+-----------------------------------------
+1. Checking VPC Endpoints
+-----------------------------------------
+[
+    {
+        "ID": "vpce-0099db686241486a4",
+        "Name": "retailedge-dev-vpce-s3",
+        "Type": "Gateway",
+        "Service": "com.amazonaws.us-east-1.s3",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-042f63f0760c5bc9e",
+        "Name": "retailedge-dev-vpce-ecr-dkr",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.ecr.dkr",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-03db9ca3322fa2b26",
+        "Name": "retailedge-dev-vpce-ec2messages",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.ec2messages",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-0a4120b01fedf88c0",
+        "Name": "retailedge-dev-vpce-ssmmessages",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.ssmmessages",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-038e42c7bdba6c63e",
+        "Name": "retailedge-dev-vpce-ssm",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.ssm",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-00cd226986caf236e",
+        "Name": "retailedge-dev-vpce-secretsmanager",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.secretsmanager",
+        "State": "available"
+    },
+    {
+        "ID": "vpce-064f19c63d2d097c0",
+        "Name": "retailedge-dev-vpce-ecr-api",
+        "Type": "Interface",
+        "Service": "com.amazonaws.us-east-1.ecr.api",
+        "State": "available"
+    }
+]
+✓ Found exactly 7 VPC Endpoints
+
+-----------------------------------------
+2. Checking Endpoint States
+-----------------------------------------
+✓ All 7 endpoints are available
+
+-----------------------------------------
+3. Checking Interface Endpoints
+-----------------------------------------
+✓ Interface endpoint exists: ecr.api
+✓ Interface endpoint exists: ecr.dkr
+✓ Interface endpoint exists: secretsmanager
+✓ Interface endpoint exists: ssm
+✓ Interface endpoint exists: ssmmessages
+✓ Interface endpoint exists: ec2messages
+
+-----------------------------------------
+4. Checking Interface Endpoint SG
+-----------------------------------------
+✓ vpce-042f63f0760c5bc9e uses correct Endpoints SG
+✓ vpce-03db9ca3322fa2b26 uses correct Endpoints SG
+✓ vpce-0a4120b01fedf88c0 uses correct Endpoints SG
+✓ vpce-038e42c7bdba6c63e uses correct Endpoints SG
+✓ vpce-00cd226986caf236e uses correct Endpoints SG
+✓ vpce-064f19c63d2d097c0 uses correct Endpoints SG
+
+-----------------------------------------
+5. Checking Private DNS
+-----------------------------------------
+✓ Private DNS enabled on all Interface Endpoints
+
+-----------------------------------------
+6. Checking S3 Gateway Endpoint
+-----------------------------------------
+✓ S3 Gateway Endpoint exists: vpce-0099db686241486a4
+
+-----------------------------------------
+7. Final Summary
+-----------------------------------------
+------------------------------------------------------------------------------------------------------------
+|                                           DescribeVpcEndpoints                                           |
++-------------------------------------+------------------------------------------+------------+------------+
+|                Name                 |                 Service                  |   State    |   Type     |
++-------------------------------------+------------------------------------------+------------+------------+
+|  retailedge-dev-vpce-s3             |  com.amazonaws.us-east-1.s3              |  available |  Gateway   |
+|  retailedge-dev-vpce-ecr-dkr        |  com.amazonaws.us-east-1.ecr.dkr         |  available |  Interface |
+|  retailedge-dev-vpce-ec2messages    |  com.amazonaws.us-east-1.ec2messages     |  available |  Interface |
+|  retailedge-dev-vpce-ssmmessages    |  com.amazonaws.us-east-1.ssmmessages     |  available |  Interface |
+|  retailedge-dev-vpce-ssm            |  com.amazonaws.us-east-1.ssm             |  available |  Interface |
+|  retailedge-dev-vpce-secretsmanager |  com.amazonaws.us-east-1.secretsmanager  |  available |  Interface |
+|  retailedge-dev-vpce-ecr-api        |  com.amazonaws.us-east-1.ecr.api         |  available |  Interface |
++-------------------------------------+------------------------------------------+------------+------------+
+
+=========================================
+   VPC Endpoints validation passed
+=========================================
