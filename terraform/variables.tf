@@ -15,3 +15,13 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+#for iam
+
+variable "github_org" {
+  type = string
+}
+
+variable "github_repo" {
+  type = string
+}

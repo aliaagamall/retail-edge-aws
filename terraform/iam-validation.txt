@@ -1,0 +1,124 @@
+=========================================
+       RetailEdge IAM Validation
+=========================================
+Date: Mon Aug 17 21:22:03 EEST 2026
+
+AWS Account ID: 631447263037
+
+-----------------------------------------
+1. Checking Terraform
+-----------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+✓ Terraform configuration is valid
+
+-----------------------------------------
+2. Reading Terraform IAM Outputs
+-----------------------------------------
+EC2 Instance Profile : retailedge-dev-app-instance-profile
+GitHub Deploy Role   : retailedge-dev-github-deploy-role
+
+-----------------------------------------
+3. Checking EC2 Instance Profile
+-----------------------------------------
+✓ Instance Profile exists: retailedge-dev-app-instance-profile
+✓ EC2 Role: retailedge-dev-app-instance-role
+
+-----------------------------------------
+4. Checking EC2 IAM Role
+-----------------------------------------
+✓ EC2 Role exists: retailedge-dev-app-instance-role
+
+-----------------------------------------
+5. Checking EC2 Role Policies
+-----------------------------------------
+Attached policies:
+----------------------------------
+|    ListAttachedRolePolicies    |
++--------------------------------+
+|  AmazonSSMManagedInstanceCore  |
+|  retailedge-dev-secrets-read   |
+|  retailedge-dev-ecr-pull       |
++--------------------------------+
+
+Checking required EC2 policies...
+✓ AmazonSSMManagedInstanceCore
+✓ retailedge-dev-secrets-read
+✓ retailedge-dev-ecr-pull
+
+-----------------------------------------
+6. Checking EC2 Trust Policy
+-----------------------------------------
+✓ EC2 is trusted by the IAM Role
+
+-----------------------------------------
+7. Checking GitHub OIDC Provider
+-----------------------------------------
+✓ GitHub OIDC Provider exists
+
+-----------------------------------------
+8. Checking GitHub Deploy Role
+-----------------------------------------
+✓ GitHub Deploy Role exists: retailedge-dev-github-deploy-role
+
+-----------------------------------------
+9. Checking GitHub Role Policies
+-----------------------------------------
+-----------------------------------------
+|       ListAttachedRolePolicies        |
++---------------------------------------+
+|  retailedge-dev-github-deploy-policy  |
++---------------------------------------+
+
+-----------------------------------------
+10. Checking GitHub OIDC Trust Policy
+-----------------------------------------
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::631447263037:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub": "repo:aliaagamall/retailedge-app:ref:refs/heads/main"
+        }
+      }
+    }
+  ]
+}
+
+✓ GitHub OIDC is trusted
+
+-----------------------------------------
+11. Checking GitHub Repository Restriction
+-----------------------------------------
+✓ GitHub repository restriction found
+  Repository: aliaagamall/retailedge-app
+
+-----------------------------------------
+12. IAM Summary
+-----------------------------------------
+
+EC2 Role:
+  retailedge-dev-app-instance-role
+
+EC2 Instance Profile:
+  retailedge-dev-app-instance-profile
+
+GitHub Deploy Role:
+  retailedge-dev-github-deploy-role
+
+GitHub Deploy Role ARN:
+  arn:aws:iam::631447263037:role/retailedge-dev-github-deploy-role
+
+GitHub OIDC Provider:
+  arn:aws:iam::631447263037:oidc-provider/token.actions.githubusercontent.com
+
+=========================================
+       IAM Validation Complete
+=========================================
