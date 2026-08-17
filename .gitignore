@@ -8,6 +8,9 @@ terraform/crash.*.log
 # Terraform variables / secrets
 terraform/*.tfvars
 !terraform/*.tfvars.example
+tfplan
+*.tfplan
+.terraform/
 
 # AWS credentials
 .aws/
