@@ -44,3 +44,12 @@ output "interface_endpoint_ids" {
 output "s3_endpoint_id" {
   value = module.vpc_endpoints.s3_endpoint_id
 }
+
+# iam outputs
+output "ec2_instance_profile_name" {
+  value = module.iam.ec2_instance_profile_name
+}
+
+output "github_deploy_role_arn" {
+  value = module.iam.github_deploy_role_arn
+}
