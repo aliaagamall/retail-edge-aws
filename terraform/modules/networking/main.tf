@@ -108,3 +108,12 @@ resource "aws_route_table_association" "db" {
   subnet_id      = aws_subnet.db[count.index].id
   route_table_id = aws_route_table.db.id
 }
+
+# ---------- Adopt the VPC's default route table (tag it, keep it unused) ----------
+resource "aws_default_route_table" "default" {
+  default_route_table_id = aws_vpc.this.default_route_table_id
+
+  tags = {
+    Name = "${local.name_prefix}-default-rt"
+  }
+}
