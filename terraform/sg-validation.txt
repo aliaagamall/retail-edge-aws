@@ -1,0 +1,57 @@
+=========================================
+   Security Groups Validation
+=========================================
+
+ALB SG:       sg-0a219a54be233a5bc
+App SG:       sg-0b1bd58d68fe281d2
+RDS SG:       sg-07999309b901c04ca
+Redis SG:     sg-0a927d31e26bb73f4
+Endpoints SG: sg-0f851673b92fd7a52
+
+-----------------------------------------
+1. Checking Security Groups exist
+-----------------------------------------
+✓ sg-0a219a54be233a5bc exists
+✓ sg-0b1bd58d68fe281d2 exists
+✓ sg-07999309b901c04ca exists
+✓ sg-0a927d31e26bb73f4 exists
+✓ sg-0f851673b92fd7a52 exists
+
+-----------------------------------------
+2. ALB Security Group
+-----------------------------------------
+443	443	tcp	0.0.0.0/0
+80	80	tcp	0.0.0.0/0
+✓ HTTPS 443 allowed from internet
+✓ HTTP 80 allowed from internet
+
+-----------------------------------------
+3. App Security Group
+-----------------------------------------
+8080	8080	tcp	sg-0a219a54be233a5bc	None
+✓ App allows TCP 8080 from ALB SG
+✓ App SG is not publicly accessible
+
+-----------------------------------------
+4. RDS Security Group
+-----------------------------------------
+3306	3306	tcp	sg-0b1bd58d68fe281d2	None
+✓ RDS allows MySQL 3306 from App SG
+✓ RDS SG is not publicly accessible
+
+-----------------------------------------
+5. Redis Security Group
+-----------------------------------------
+6379	6379	tcp	sg-0b1bd58d68fe281d2	None
+✓ Redis allows 6379 from App SG
+✓ Redis SG is not publicly accessible
+
+-----------------------------------------
+6. VPC Endpoint Security Group
+-----------------------------------------
+443	443	tcp	sg-0b1bd58d68fe281d2	None
+✓ VPC Endpoints allow HTTPS 443 from App SG
+
+=========================================
+   Security Groups validation passed
+=========================================
