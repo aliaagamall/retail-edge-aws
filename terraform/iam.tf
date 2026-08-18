@@ -9,6 +9,7 @@ module "iam" {
   github_branch = "main"
 
   secrets_arns = [
-    module.rds.db_secret_arn
+    module.rds.db_secret_arn,
+    module.elasticache.redis_secret_arn
   ]
 }
