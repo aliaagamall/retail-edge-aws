@@ -1,0 +1,101 @@
+============================================================
+              RetailEdge S3 Validation
+============================================================
+Date: Tue Aug 18 23:13:25 EEST 2026
+
+------------------------------------------------------------
+1. Checking Terraform
+------------------------------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+------------------------------------------------------------
+2. Reading Terraform S3 Output
+------------------------------------------------------------
+S3 Bucket Name : retailedge-dev-assets-631447263037
+✓ S3 bucket output exists
+
+------------------------------------------------------------
+3. Checking AWS Identity
+------------------------------------------------------------
+{
+    "UserId": "AIDAZGBJQS46RLS6JS6NM",
+    "Account": "631447263037",
+    "Arn": "arn:aws:iam::631447263037:user/cliuser"
+}
+✓ AWS credentials are working
+
+------------------------------------------------------------
+4. Checking S3 Bucket
+------------------------------------------------------------
+{
+    "BucketArn": "arn:aws:s3:::retailedge-dev-assets-631447263037",
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}
+Bucket Name : retailedge-dev-assets-631447263037
+✓ S3 bucket exists
+
+------------------------------------------------------------
+5. Checking Versioning
+------------------------------------------------------------
+Versioning Status : Enabled
+✓ Versioning is enabled
+
+------------------------------------------------------------
+6. Checking Server-Side Encryption
+------------------------------------------------------------
+Encryption : AES256
+✓ AES256 encryption is enabled
+
+------------------------------------------------------------
+7. Checking Public Access Block
+------------------------------------------------------------
+{
+    "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+    }
+}
+✓ All Public Access Block settings are enabled
+
+------------------------------------------------------------
+8. Checking Bucket Policy
+------------------------------------------------------------
+✓ Bucket policy exists
+
+Bucket Policy:
+{"Version":"2012-10-17","Statement":[{"Sid":"AllowAppRoleAccess","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::631447263037:role/retailedge-dev-app-instance-role"},"Action":["s3:PutObject","s3:ListBucket","s3:GetObject","s3:DeleteObject"],"Resource":["arn:aws:s3:::retailedge-dev-assets-631447263037/*","arn:aws:s3:::retailedge-dev-assets-631447263037"]}]}
+
+------------------------------------------------------------
+9. Checking Bucket Region
+------------------------------------------------------------
+Bucket Region : us-east-1
+✓ Bucket is in us-east-1
+
+============================================================
+                  VALIDATION SUMMARY
+============================================================
+Terraform               : PASS
+Terraform S3 Output     : PASS
+AWS Credentials         : PASS
+S3 Bucket               : PASS
+Versioning              : PASS
+Encryption (AES256)     : PASS
+Public Access Block     : PASS
+Bucket Policy           : PASS
+Bucket Region           : PASS
+
+S3 Bucket:
+retailedge-dev-assets-631447263037
+
+Output saved to:
+validation-results/s3-validation.txt
+
+============================================================
+              S3 VALIDATION COMPLETE
+============================================================

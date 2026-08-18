@@ -116,3 +116,9 @@ output "redis_secret_arn" {
 output "ecr_repository_url" {
   value = module.ecr.repository_url
 }
+
+# s3 outputs
+
+output "s3_bucket_name" {
+  value = module.s3.bucket_name
+}
