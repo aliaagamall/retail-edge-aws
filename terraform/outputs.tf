@@ -53,3 +53,21 @@ output "ec2_instance_profile_name" {
 output "github_deploy_role_arn" {
   value = module.iam.github_deploy_role_arn
 }
+
+# elb outputs
+
+output "alb_arn" {
+  value = module.alb.alb_arn
+}
+
+output "alb_dns_name" {
+  value = module.alb.alb_dns_name
+}
+
+output "target_group_arn" {
+  value = module.alb.target_group_arn
+}
+
+output "https_enabled" {
+  value = module.alb.https_enabled
+}

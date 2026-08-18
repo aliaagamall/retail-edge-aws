@@ -1,0 +1,75 @@
+=========================================
+       RetailEdge ALB Validation
+=========================================
+Date: Tue Aug 18 12:12:32 EEST 2026
+
+-----------------------------------------
+1. Checking Terraform
+-----------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+-----------------------------------------
+2. Reading Terraform ALB Outputs
+-----------------------------------------
+ALB ARN          : arn:aws:elasticloadbalancing:us-east-1:631447263037:loadbalancer/app/retailedge-dev-alb/c14ea96cd3f70b45
+ALB DNS Name     : retailedge-dev-alb-180647381.us-east-1.elb.amazonaws.com
+Target Group ARN : arn:aws:elasticloadbalancing:us-east-1:631447263037:targetgroup/retailedge-dev-app-tg/02aeedb27fa6c8b3
+
+-----------------------------------------
+3. Checking ALB
+-----------------------------------------
+State  : active
+Type   : application
+Scheme : internet-facing
+✓ ALB is active
+
+-----------------------------------------
+4. Checking ALB Listeners
+-----------------------------------------
+arn:aws:elasticloadbalancing:us-east-1:631447263037:listener/app/retailedge-dev-alb/c14ea96cd3f70b45/5fd915db18f0b93c	80	HTTP
+
+✓ ALB listeners found
+
+-----------------------------------------
+5. Checking Target Group
+-----------------------------------------
+Name     : retailedge-dev-app-tg
+Type     : instance
+Port     : 8080
+Protocol : HTTP
+
+✓ Target group found
+
+-----------------------------------------
+6. Checking Target Health
+-----------------------------------------
+
+
+Healthy Targets : 0
+Total Targets   : 0
+⚠ No healthy targets currently
+
+-----------------------------------------
+7. Checking ALB Security Groups
+-----------------------------------------
+Security Groups:
+sg-0fed06037f2b6d228
+✓ ALB security group attached
+
+-----------------------------------------
+8. Testing ALB DNS
+-----------------------------------------
+ALB DNS: retailedge-dev-alb-180647381.us-east-1.elb.amazonaws.com
+
+HTTPS Status Code: 000
+⚠ Could not connect to ALB
+
+=========================================
+       ALB Validation Completed
+=========================================
+
+Validation report:
+validation-results/alb-validation.txt
