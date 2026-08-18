@@ -122,3 +122,9 @@ output "ecr_repository_url" {
 output "s3_bucket_name" {
   value = module.s3.bucket_name
 }
+
+# waf outputs
+
+output "waf_web_acl_arn" {
+  value = module.waf.web_acl_arn
+}
