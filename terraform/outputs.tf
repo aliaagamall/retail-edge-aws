@@ -110,3 +110,9 @@ output "redis_security_group_id" {
 output "redis_secret_arn" {
   value = module.elasticache.redis_secret_arn
 }
+
+# ecr outputs
+
+output "ecr_repository_url" {
+  value = module.ecr.repository_url
+}
