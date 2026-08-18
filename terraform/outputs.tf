@@ -71,3 +71,21 @@ output "target_group_arn" {
 output "https_enabled" {
   value = module.alb.https_enabled
 }
+
+# rds outputs
+
+output "db_instance_id" {
+  value = module.rds.db_instance_id
+}
+
+output "db_endpoint" {
+  value = module.rds.db_endpoint
+}
+
+output "db_secret_arn" {
+  value = module.rds.db_secret_arn
+}
+
+output "db_secret_name" {
+  value = module.rds.db_secret_name
+}

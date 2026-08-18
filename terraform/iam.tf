@@ -9,6 +9,6 @@ module "iam" {
   github_branch = "main"
 
   secrets_arns = [
-    "arn:aws:secretsmanager:${var.aws_region}:*:secret:${var.project_name}/*"
+    module.rds.db_secret_arn
   ]
 }

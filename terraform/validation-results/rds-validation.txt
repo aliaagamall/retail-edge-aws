@@ -1,0 +1,104 @@
+=========================================
+       RetailEdge RDS Validation
+=========================================
+Date: Tue Aug 18 17:20:27 EEST 2026
+
+-----------------------------------------
+1. Checking Terraform
+-----------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+-----------------------------------------
+2. Reading Terraform RDS Outputs
+-----------------------------------------
+DB Instance ID : retailedge-dev-mysql
+DB Endpoint    : retailedge-dev-mysql.c0hykay4wp40.us-east-1.rds.amazonaws.com
+Secret ARN     : arn:aws:secretsmanager:us-east-1:631447263037:secret:retailedge/db-3YJdO9
+Secret Name    : retailedge/db
+
+-----------------------------------------
+3. Checking RDS Instance
+-----------------------------------------
+Status             : available
+Engine             : mysql
+Engine Version     : 8.0.46
+Instance Class     : db.t3.micro
+Multi-AZ           : True
+Storage Encrypted  : True
+Publicly Accessible: False
+Port               : None
+
+✓ RDS instance is available
+✓ MySQL engine confirmed
+✓ Storage encryption enabled
+✓ RDS is not publicly accessible
+
+-----------------------------------------
+4. Checking RDS Endpoint
+-----------------------------------------
+Endpoint : retailedge-dev-mysql.c0hykay4wp40.us-east-1.rds.amazonaws.com
+Port     : 3306
+✓ MySQL port 3306 confirmed
+
+-----------------------------------------
+5. Checking RDS Subnet Group
+-----------------------------------------
+Subnet Group : retailedge-dev-db-subnet-group
+Subnet Count : 2
+✓ RDS subnet group spans multiple subnets
+
+-----------------------------------------
+6. Checking RDS Security Groups
+-----------------------------------------
+Security Groups:
+sg-06d35325cf2103720
+✓ RDS security group attached
+
+-----------------------------------------
+7. Checking Secrets Manager
+-----------------------------------------
+Secret Name : retailedge/db
+Secret ARN  : arn:aws:secretsmanager:us-east-1:631447263037:secret:retailedge/db-3YJdO9
+✓ Secret exists
+
+-----------------------------------------
+8. Checking Secret Fields
+-----------------------------------------
+Secret fields:
+  DB_HOST: retailedge-dev-mysql.c0hykay4wp40.us-east-1.rds.amazonaws.com
+  DB_USER: retailedge_admin
+  DB_PWD: ********
+  DB_DATABASE: retailedge
+  DB_PORT: 3306
+
+✓ All required database secret fields exist
+
+-----------------------------------------
+9. Checking Secret Values
+-----------------------------------------
+✓ DB_HOST matches RDS endpoint
+✓ DB_USER is configured
+✓ DB_DATABASE is configured
+✓ DB_PORT is 3306
+
+-----------------------------------------
+10. Checking Backup Configuration
+-----------------------------------------
+Backup Retention : 0 days
+⚠ Automated backups disabled
+
+-----------------------------------------
+11. Checking Deletion Protection
+-----------------------------------------
+Deletion Protection : False
+⚠ Deletion protection disabled
+
+=========================================
+       RDS Validation Completed
+=========================================
+
+Validation report:
+validation-results/rds-validation.txt
