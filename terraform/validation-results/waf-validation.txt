@@ -1,0 +1,129 @@
+============================================================
+              RetailEdge WAF Validation
+============================================================
+Date: Tue Aug 18 23:30:05 EEST 2026
+
+------------------------------------------------------------
+1. Checking Terraform
+------------------------------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+------------------------------------------------------------
+2. Reading Terraform WAF Output
+------------------------------------------------------------
+WAF ARN : arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
+✓ WAF Terraform output exists
+
+------------------------------------------------------------
+3. Checking AWS Identity
+------------------------------------------------------------
+{
+    "UserId": "AIDAZGBJQS46RLS6JS6NM",
+    "Account": "631447263037",
+    "Arn": "arn:aws:iam::631447263037:user/cliuser"
+}
+✓ AWS credentials are working
+
+------------------------------------------------------------
+4. Reading WAF Information
+------------------------------------------------------------
+WAF Name : retailedge-dev-waf
+WAF ID   : 48099913-e6ed-4d40-8e1e-ba507cf2f856
+Scope    : REGIONAL
+
+------------------------------------------------------------
+5. Checking Web ACL
+------------------------------------------------------------
+Name        : retailedge-dev-waf
+ID          : 48099913-e6ed-4d40-8e1e-ba507cf2f856
+ARN         : arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
+Scope       : REGIONAL
+Default     : Allow
+✓ Web ACL exists
+
+------------------------------------------------------------
+6. Checking WAF Rules
+------------------------------------------------------------
+Total Rules : 3
+
+Priority 1 : AWS-Common-Rule-Set
+Priority 2 : AWS-SQLi-Rule-Set
+Priority 3 : RateLimitRule
+
+✓ Exactly 3 WAF rules configured
+
+------------------------------------------------------------
+7. Validating Required Rules
+------------------------------------------------------------
+AWS-Common-Rule-Set
+AWS-SQLi-Rule-Set
+RateLimitRule
+✓ AWS Common Rule Set found
+✓ AWS SQLi Rule Set found
+✓ Rate Limit Rule found
+
+------------------------------------------------------------
+8. Checking Rate Limit
+------------------------------------------------------------
+Configured Rate Limit : 2000 requests / 5 minutes / IP
+✓ Rate limit is 2000
+
+------------------------------------------------------------
+9. Checking ALB Association
+------------------------------------------------------------
+{
+    "ResourceArns": [
+        "arn:aws:elasticloadbalancing:us-east-1:631447263037:loadbalancer/app/retailedge-dev-alb/1af51367b4db2e30"
+    ]
+}
+✓ WAF is associated with an Application Load Balancer
+
+------------------------------------------------------------
+10. Checking CloudWatch Log Group
+------------------------------------------------------------
+✓ WAF CloudWatch Log Group exists
+Log Group : aws-waf-logs-retailedge-dev
+Retention : 30 days
+
+------------------------------------------------------------
+11. Checking WAF Logging Configuration
+------------------------------------------------------------
+{
+    "LoggingConfiguration": {
+        "ResourceArn": "arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856",
+        "LogDestinationConfigs": [
+            "arn:aws:logs:us-east-1:631447263037:log-group:aws-waf-logs-retailedge-dev"
+        ],
+        "ManagedByFirewallManager": false,
+        "LogType": "WAF_LOGS",
+        "LogScope": "CUSTOMER"
+    }
+}
+✓ WAF logging configuration exists
+
+============================================================
+                  VALIDATION SUMMARY
+============================================================
+Terraform                 : PASS
+WAF Web ACL               : PASS
+WAF Scope                 : PASS (REGIONAL)
+Common Rule Set           : PASS
+SQL Injection Protection  : PASS
+Rate Limit Rule           : PASS
+Rate Limit                : PASS (2000)
+ALB Association           : PASS
+CloudWatch Log Group      : PASS
+WAF Logging               : PASS
+
+WAF ARN:
+arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
+
+Output saved to:
+validation-results/waf-validation.txt
+
+============================================================
+              WAF VALIDATION COMPLETE
+============================================================
