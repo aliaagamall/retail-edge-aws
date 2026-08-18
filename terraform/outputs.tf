@@ -89,3 +89,24 @@ output "db_secret_arn" {
 output "db_secret_name" {
   value = module.rds.db_secret_name
 }
+# ElastiCache outputs
+
+output "redis_primary_endpoint" {
+  value = module.elasticache.redis_primary_endpoint
+}
+
+output "redis_port" {
+  value = module.elasticache.redis_port
+}
+
+output "redis_replication_group_id" {
+  value = module.elasticache.redis_replication_group_id
+}
+
+output "redis_security_group_id" {
+  value = module.security_groups.redis_sg_id
+}
+
+output "redis_secret_arn" {
+  value = module.elasticache.redis_secret_arn
+}

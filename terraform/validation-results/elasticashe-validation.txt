@@ -1,0 +1,77 @@
+=========================================
+   RetailEdge ElastiCache Validation
+=========================================
+Date: Tue Aug 18 20:18:48 EEST 2026
+
+-----------------------------------------
+1. Checking Terraform
+-----------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+-----------------------------------------
+2. Reading Terraform ElastiCache Outputs
+-----------------------------------------
+Redis Endpoint       : master.retailedge-dev-redis.qnbk1l.use1.cache.amazonaws.com
+Redis Port           : 6379
+Replication Group ID : retailedge-dev-redis
+Security Group ID    : sg-0cdebd3cf8768525f
+
+-----------------------------------------
+3. Checking AWS CLI
+-----------------------------------------
+✓ AWS CLI is installed
+AWS Account : 631447263037
+AWS Region  : us-east-1
+
+-----------------------------------------
+4. Checking ElastiCache Replication Group
+-----------------------------------------
+Replication Group : retailedge-dev-redis
+Status            : available
+✓ Redis replication group is available
+
+-----------------------------------------
+5. Checking Redis Nodes
+-----------------------------------------
+Redis Nodes : 2
+✓ Redis nodes detected
+
+-----------------------------------------
+6. Checking Redis Security Group
+-----------------------------------------
+------------------------------------------------------------
+|                  DescribeSecurityGroups                  |
++--------------+-------------------------------------------+
+|  Description |  Allows Redis from application tier only  |
+|  ID          |  sg-0cdebd3cf8768525f                     |
+|  Name        |  retailedge-dev-redis-sg                  |
++--------------+-------------------------------------------+
+
+✓ Redis Security Group exists
+
+-----------------------------------------
+7. Checking Redis Port
+-----------------------------------------
+Redis Port : 6379
+✓ Default Redis port is configured correctly
+
+=========================================
+          Validation Summary
+=========================================
+Terraform          : VALID
+Redis Endpoint     : master.retailedge-dev-redis.qnbk1l.use1.cache.amazonaws.com
+Redis Port         : 6379
+Replication Group  : retailedge-dev-redis
+Security Group     : sg-0cdebd3cf8768525f
+Redis Status       : available
+Redis Nodes        : 2
+
+=========================================
+Validation completed
+=========================================
+
+Output saved to:
+validation-results/elasticashe-validation.txt
