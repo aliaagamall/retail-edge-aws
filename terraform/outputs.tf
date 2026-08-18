@@ -128,3 +128,11 @@ output "s3_bucket_name" {
 output "waf_web_acl_arn" {
   value = module.waf.web_acl_arn
 }
+
+# compute outputs
+output "asg_name" {
+  value = module.compute.asg_name
+}
+output "launch_template_id" {
+  value = module.compute.launch_template_id
+}
