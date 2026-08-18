@@ -1,0 +1,83 @@
+============================================================
+              RetailEdge ECR Validation
+============================================================
+Date: Tue Aug 18 22:45:07 EEST 2026
+
+------------------------------------------------------------
+1. Checking Terraform
+------------------------------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+------------------------------------------------------------
+2. Reading Terraform ECR Output
+------------------------------------------------------------
+ECR Repository URL : 631447263037.dkr.ecr.us-east-1.amazonaws.com/retailedge-app
+✓ ECR repository output exists
+
+------------------------------------------------------------
+3. Checking AWS Identity
+------------------------------------------------------------
+{
+    "UserId": "AIDAZGBJQS46RLS6JS6NM",
+    "Account": "631447263037",
+    "Arn": "arn:aws:iam::631447263037:user/cliuser"
+}
+✓ AWS credentials are working
+
+------------------------------------------------------------
+4. Checking ECR Repository
+------------------------------------------------------------
+Repository Name : retailedge-app
+✓ ECR repository exists
+
+------------------------------------------------------------
+5. Checking Repository Configuration
+------------------------------------------------------------
+Repository ARN       : arn:aws:ecr:us-east-1:631447263037:repository/retailedge-app
+Repository URI       : 631447263037.dkr.ecr.us-east-1.amazonaws.com/retailedge-app
+Image Tag Mutability : IMMUTABLE
+Encryption Type      : AES256
+
+------------------------------------------------------------
+6. Checking Image Scanning
+------------------------------------------------------------
+Configured in Terraform: scan_on_push = true
+✓ Image scanning is configured in Terraform
+
+------------------------------------------------------------
+7. Checking Lifecycle Policy
+------------------------------------------------------------
+✓ Lifecycle policy exists
+Rule 1: Keep last 10 tagged images
+Rule 2: Expire untagged images after 3 days
+
+------------------------------------------------------------
+8. Checking Repository Naming
+------------------------------------------------------------
+Expected Pattern : retailedge-app
+Actual Repository: retailedge-app
+✓ Repository name matches expected naming
+
+============================================================
+                  VALIDATION SUMMARY
+============================================================
+Terraform              : PASS
+Terraform ECR Output   : PASS
+AWS Credentials        : PASS
+ECR Repository         : PASS
+Repository Configuration: PASS
+Image Scanning         : CONFIGURED
+Lifecycle Policy       : PASS
+
+ECR Repository URL:
+631447263037.dkr.ecr.us-east-1.amazonaws.com/retailedge-app
+
+Output saved to:
+validation-results/ecr-validation.txt
+
+============================================================
+              ECR VALIDATION COMPLETE
+============================================================
