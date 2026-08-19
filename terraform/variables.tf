@@ -5,7 +5,7 @@ variable "aws_region" {
 }
 
 variable "project_name" {
-  description = "Short project prefix used in resource names/tags"
+  description = "prefix used in resource names/tags"
   type        = string
   default     = "retailedge"
 }
@@ -16,12 +16,12 @@ variable "environment" {
   default     = "dev"
 }
 
-#for iam
-
 variable "github_org" {
-  type = string
+  description = "GitHub organization or username"
+  type        = string
 }
 
 variable "github_repo" {
-  type = string
+  description = "GitHub repository name"
+  type        = string
 }
