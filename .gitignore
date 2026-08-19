@@ -4,15 +4,17 @@ terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/crash.log
 terraform/crash.*.log
+terraform/tfplan
+terraform/*.tfplan
 
 # Terraform variables / secrets
 terraform/*.tfvars
 !terraform/*.tfvars.example
-tfplan
-*.tfplan
+
+# Terraform
 .terraform/
 
-# AWS credentials
+# AWS credentials / environment secrets
 .aws/
 .env
 .env.*
