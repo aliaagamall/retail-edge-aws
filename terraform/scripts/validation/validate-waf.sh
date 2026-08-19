@@ -2,14 +2,11 @@
 
 set -u
 
-# ============================================================
-#              RetailEdge WAF Validation
-# ============================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 AWS_REGION="us-east-1"
-OUTPUT_FILE="validation-results/waf-validation.txt"
-
-mkdir -p validation-results
+OUTPUT_FILE="$OUTPUT_DIR/waf-validation.txt"
 
 exec > >(tee "$OUTPUT_FILE") 2>&1
 

@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+OUTPUT_FILE="$OUTPUT_DIR/vpc-endpoints-validation.txt"
+
+exec > >(tee "$OUTPUT_FILE") 2>&1
 
 echo "========================================="
 echo "    VPC Endpoints Validation"

@@ -2,15 +2,11 @@
 
 set -u
 
-# ============================================================
-#              RetailEdge ECR Validation
-# ============================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 SCRIPT_NAME="validate-ecr"
-OUTPUT_DIR="validation-results"
 OUTPUT_FILE="$OUTPUT_DIR/ecr-validation.txt"
-
-mkdir -p scripts
 
 # Save everything to output file and show it on terminal
 exec > >(tee "$OUTPUT_FILE") 2>&1
