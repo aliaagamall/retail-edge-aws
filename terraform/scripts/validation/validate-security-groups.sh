@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+OUTPUT_FILE="$OUTPUT_DIR/security-groups-validation.txt"
+
+exec > >(tee "$OUTPUT_FILE") 2>&1
 
 echo "========================================="
 echo "   Security Groups Validation"

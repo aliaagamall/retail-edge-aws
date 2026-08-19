@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
-OUTPUT_DIR="validation-results"
-OUTPUT_FILE="$OUTPUT_DIR/alb-validation.txt"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-mkdir -p "$OUTPUT_DIR"
+OUTPUT_FILE="$OUTPUT_DIR/alb-validation.txt"
 
 exec > >(tee "$OUTPUT_FILE") 2>&1
 

@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+OUTPUT_FILE="$OUTPUT_DIR/networking-validation.txt"
+
+exec > >(tee "$OUTPUT_FILE") 2>&1
 
 echo "========================================"
 echo " RetailEdge Networking Validation"

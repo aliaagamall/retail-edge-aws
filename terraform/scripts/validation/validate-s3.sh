@@ -2,14 +2,11 @@
 
 set -u
 
-# ============================================================
-#              RetailEdge S3 Validation
-# ============================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 AWS_REGION="us-east-1"
-OUTPUT_FILE="validation-results/s3-validation.txt"
-
-mkdir -p validation-results
+OUTPUT_FILE="$OUTPUT_DIR/s3-validation.txt"
 
 exec > >(tee "$OUTPUT_FILE") 2>&1
 
