@@ -1,0 +1,96 @@
+============================================================
+            RetailEdge S3 Web Bucket Validation
+============================================================
+Date: Tue Aug 25 04:28:06 EEST 2026
+
+------------------------------------------------------------
+1. Checking Terraform
+------------------------------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+------------------------------------------------------------
+2. Reading Terraform S3 Web Output
+------------------------------------------------------------
+S3 Web Bucket Name : retailedge-dev-web-631447263037
+✓ S3 web bucket output exists
+
+------------------------------------------------------------
+3. Checking AWS Identity
+------------------------------------------------------------
+{
+    "UserId": "AIDAZGBJQS46RLS6JS6NM",
+    "Account": "631447263037",
+    "Arn": "arn:aws:iam::631447263037:user/cliuser"
+}
+✓ AWS credentials are working
+
+------------------------------------------------------------
+4. Checking S3 Bucket
+------------------------------------------------------------
+{
+    "BucketArn": "arn:aws:s3:::retailedge-dev-web-631447263037",
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}
+Bucket Name : retailedge-dev-web-631447263037
+✓ S3 bucket exists
+
+------------------------------------------------------------
+5. Checking Versioning
+------------------------------------------------------------
+Versioning Status : Enabled
+✓ Versioning is enabled
+
+------------------------------------------------------------
+6. Checking Server-Side Encryption
+------------------------------------------------------------
+Encryption : AES256
+✓ AES256 encryption is enabled
+
+------------------------------------------------------------
+7. Checking Public Access Block
+------------------------------------------------------------
+{
+    "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": true,
+        "IgnorePublicAcls": true,
+        "BlockPublicPolicy": true,
+        "RestrictPublicBuckets": true
+    }
+}
+✓ All Public Access Block settings are enabled
+
+------------------------------------------------------------
+8. Checking Bucket Policy (expected: not set yet)
+------------------------------------------------------------
+⚠ No bucket policy yet (expected at this stage - CloudFront module not applied yet)
+
+------------------------------------------------------------
+9. Checking Bucket Region
+------------------------------------------------------------
+Bucket Region : us-east-1
+✓ Bucket is in us-east-1
+
+============================================================
+                  VALIDATION SUMMARY
+============================================================
+Terraform               : PASS
+S3 Web Bucket           : PASS
+Versioning              : PASS
+Encryption (AES256)     : PASS
+Public Access Block     : PASS
+Bucket Policy           : PENDING (expected until CloudFront module is applied)
+Bucket Region           : PASS
+
+S3 Web Bucket:
+retailedge-dev-web-631447263037
+
+Output saved to:
+/mnt/d/cloud/projects/retail-edge-aws/terraform/validation-results/s3-web-validation.txt
+
+============================================================
+            S3 WEB BUCKET VALIDATION COMPLETE
+============================================================

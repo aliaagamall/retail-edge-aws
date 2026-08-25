@@ -136,3 +136,12 @@ output "asg_name" {
 output "launch_template_id" {
   value = module.compute.launch_template_id
 }
+
+# s3-web outputs
+output "web_bucket_name" {
+  value = module.s3_web.bucket_name
+}
+
+output "web_bucket_regional_domain_name" {
+  value = module.s3_web.bucket_regional_domain_name
+}
