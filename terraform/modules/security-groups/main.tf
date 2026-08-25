@@ -15,27 +15,20 @@ resource "aws_security_group" "alb" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   security_group_id = aws_security_group.alb.id
-  description       = "HTTPS from internet"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "HTTPS from within VPC only (CloudFront VPC Origin ENIs)"
+  cidr_ipv4         = var.vpc_cidr
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb_http_redirect" {
+resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
-  description       = "HTTP from internet - redirected to HTTPS at listener level"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "HTTP from within VPC only (CloudFront VPC Origin ENIs) - origin protocol is http-only for now"
+  cidr_ipv4         = var.vpc_cidr
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
-}
-
-resource "aws_vpc_security_group_egress_rule" "alb_all_out" {
-  security_group_id = aws_security_group.alb.id
-  description       = "Allow ALB to reach app tier"
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
 }
 
 # Application Security Group

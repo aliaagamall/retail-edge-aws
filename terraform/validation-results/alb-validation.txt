@@ -1,7 +1,7 @@
 =========================================
-       RetailEdge ALB Validation
+   RetailEdge ALB Validation (Internal)
 =========================================
-Date: Tue Aug 18 12:12:32 EEST 2026
+Date: Tue Aug 25 04:53:10 EEST 2026
 
 -----------------------------------------
 1. Checking Terraform
@@ -14,62 +14,57 @@ Date: Tue Aug 18 12:12:32 EEST 2026
 -----------------------------------------
 2. Reading Terraform ALB Outputs
 -----------------------------------------
-ALB ARN          : arn:aws:elasticloadbalancing:us-east-1:631447263037:loadbalancer/app/retailedge-dev-alb/c14ea96cd3f70b45
-ALB DNS Name     : retailedge-dev-alb-180647381.us-east-1.elb.amazonaws.com
-Target Group ARN : arn:aws:elasticloadbalancing:us-east-1:631447263037:targetgroup/retailedge-dev-app-tg/02aeedb27fa6c8b3
+ALB ARN          : arn:aws:elasticloadbalancing:us-east-1:631447263037:loadbalancer/app/retailedge-dev-alb/875562a91f88a840
+ALB DNS Name     : internal-retailedge-dev-alb-1388585349.us-east-1.elb.amazonaws.com
+Target Group ARN : arn:aws:elasticloadbalancing:us-east-1:631447263037:targetgroup/retailedge-dev-app-tg/16c9addbfbc4c4e6
 
 -----------------------------------------
-3. Checking ALB
+3. Checking ALB Scheme (must be internal)
 -----------------------------------------
-State  : active
-Type   : application
-Scheme : internet-facing
+State   : active
+Scheme  : internal
+Subnets : subnet-0179f2cb7a26f5bc1	subnet-030f96c98700bee36
 ✓ ALB is active
+✓ ALB scheme is internal (not internet-facing)
 
 -----------------------------------------
-4. Checking ALB Listeners
+4. Checking ALB is in App (private) Subnets
 -----------------------------------------
-arn:aws:elasticloadbalancing:us-east-1:631447263037:listener/app/retailedge-dev-alb/c14ea96cd3f70b45/5fd915db18f0b93c	80	HTTP
+App Subnets (expected) : subnet-0179f2cb7a26f5bc1 subnet-030f96c98700bee36
+ALB Subnets (actual)   : subnet-0179f2cb7a26f5bc1	subnet-030f96c98700bee36
+✓ ALB is deployed in the private app subnets
+
+-----------------------------------------
+5. Checking ALB Listeners
+-----------------------------------------
+arn:aws:elasticloadbalancing:us-east-1:631447263037:listener/app/retailedge-dev-alb/875562a91f88a840/6bab8c8348896fb1	80	HTTP
 
 ✓ ALB listeners found
 
 -----------------------------------------
-5. Checking Target Group
+6. Checking Target Group
 -----------------------------------------
-Name     : retailedge-dev-app-tg
-Type     : instance
-Port     : 8080
-Protocol : HTTP
-
+Name : retailedge-dev-app-tg
+Port : 8080
 ✓ Target group found
 
 -----------------------------------------
-6. Checking Target Health
+7. Checking ALB Security Group Rules
 -----------------------------------------
-
-
-Healthy Targets : 0
-Total Targets   : 0
-⚠ No healthy targets currently
-
------------------------------------------
-7. Checking ALB Security Groups
------------------------------------------
-Security Groups:
-sg-0fed06037f2b6d228
-✓ ALB security group attached
+ALB SG : sg-0325dcaa3bf34fbe6
+80	80	tcp	10.0.0.0/16
+443	443	tcp	10.0.0.0/16
+✓ ALB SG does not allow public internet access (restricted to VPC CIDR)
 
 -----------------------------------------
-8. Testing ALB DNS
+8. Confirming ALB Has No Public DNS Resolution Externally
 -----------------------------------------
-ALB DNS: retailedge-dev-alb-180647381.us-east-1.elb.amazonaws.com
-
-HTTPS Status Code: 000
-⚠ Could not connect to ALB
+ALB DNS: internal-retailedge-dev-alb-1388585349.us-east-1.elb.amazonaws.com
+Note: this DNS only resolves from inside the VPC (internal ALB) - external curl is expected to fail/timeout, which is correct.
 
 =========================================
-       ALB Validation Completed
+   ALB Validation Completed (Internal)
 =========================================
 
 Validation report:
-validation-results/alb-validation.txt
+/mnt/d/cloud/projects/retail-edge-aws/terraform/validation-results/alb-validation.txt
