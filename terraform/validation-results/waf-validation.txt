@@ -1,7 +1,7 @@
 ============================================================
-              RetailEdge WAF Validation
+         RetailEdge WAF Validation (CLOUDFRONT scope)
 ============================================================
-Date: Tue Aug 18 23:30:05 EEST 2026
+Date: Tue Aug 25 23:51:02 EEST 2026
 
 ------------------------------------------------------------
 1. Checking Terraform
@@ -14,7 +14,7 @@ Date: Tue Aug 18 23:30:05 EEST 2026
 ------------------------------------------------------------
 2. Reading Terraform WAF Output
 ------------------------------------------------------------
-WAF ARN : arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
+WAF ARN : arn:aws:wafv2:us-east-1:631447263037:global/webacl/retailedge-dev-waf/6d95c529-1bbf-4451-b091-9586a8768960
 ✓ WAF Terraform output exists
 
 ------------------------------------------------------------
@@ -28,27 +28,25 @@ WAF ARN : arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-wa
 ✓ AWS credentials are working
 
 ------------------------------------------------------------
-4. Reading WAF Information
+4. Checking WAF Scope
 ------------------------------------------------------------
+✓ ARN indicates CLOUDFRONT (global) scope
 WAF Name : retailedge-dev-waf
-WAF ID   : 48099913-e6ed-4d40-8e1e-ba507cf2f856
-Scope    : REGIONAL
+WAF ID   : 6d95c529-1bbf-4451-b091-9586a8768960
 
 ------------------------------------------------------------
 5. Checking Web ACL
 ------------------------------------------------------------
-Name        : retailedge-dev-waf
-ID          : 48099913-e6ed-4d40-8e1e-ba507cf2f856
-ARN         : arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
-Scope       : REGIONAL
-Default     : Allow
-✓ Web ACL exists
+Name    : retailedge-dev-waf
+ID      : 6d95c529-1bbf-4451-b091-9586a8768960
+ARN     : arn:aws:wafv2:us-east-1:631447263037:global/webacl/retailedge-dev-waf/6d95c529-1bbf-4451-b091-9586a8768960
+Scope   : CLOUDFRONT
+Default : Allow
+✓ Web ACL exists with CLOUDFRONT scope
 
 ------------------------------------------------------------
 6. Checking WAF Rules
 ------------------------------------------------------------
-Total Rules : 3
-
 Priority 1 : AWS-Common-Rule-Set
 Priority 2 : AWS-SQLi-Rule-Set
 Priority 3 : RateLimitRule
@@ -56,44 +54,31 @@ Priority 3 : RateLimitRule
 ✓ Exactly 3 WAF rules configured
 
 ------------------------------------------------------------
-7. Validating Required Rules
+7. Confirming No ALB Association (ALB is internal now)
 ------------------------------------------------------------
-AWS-Common-Rule-Set
-AWS-SQLi-Rule-Set
-RateLimitRule
-✓ AWS Common Rule Set found
-✓ AWS SQLi Rule Set found
-✓ Rate Limit Rule found
+✓ No ALB association (expected - ALB is internal, WAF now belongs to CloudFront)
 
 ------------------------------------------------------------
-8. Checking Rate Limit
+8. Checking CloudFront Association
 ------------------------------------------------------------
-Configured Rate Limit : 2000 requests / 5 minutes / IP
-✓ Rate limit is 2000
+Note: CLOUDFRONT-scope WAF associations happen via the
+'web_acl_id' argument directly on the CloudFront distribution,
+not via aws_wafv2_web_acl_association. This will be verified
+once modules/cloudfront is applied.
 
 ------------------------------------------------------------
-9. Checking ALB Association
-------------------------------------------------------------
-{
-    "ResourceArns": [
-        "arn:aws:elasticloadbalancing:us-east-1:631447263037:loadbalancer/app/retailedge-dev-alb/1af51367b4db2e30"
-    ]
-}
-✓ WAF is associated with an Application Load Balancer
-
-------------------------------------------------------------
-10. Checking CloudWatch Log Group
+9. Checking CloudWatch Log Group
 ------------------------------------------------------------
 ✓ WAF CloudWatch Log Group exists
 Log Group : aws-waf-logs-retailedge-dev
 Retention : 30 days
 
 ------------------------------------------------------------
-11. Checking WAF Logging Configuration
+10. Checking WAF Logging Configuration
 ------------------------------------------------------------
 {
     "LoggingConfiguration": {
-        "ResourceArn": "arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856",
+        "ResourceArn": "arn:aws:wafv2:us-east-1:631447263037:global/webacl/retailedge-dev-waf/6d95c529-1bbf-4451-b091-9586a8768960",
         "LogDestinationConfigs": [
             "arn:aws:logs:us-east-1:631447263037:log-group:aws-waf-logs-retailedge-dev"
         ],
@@ -108,21 +93,19 @@ Retention : 30 days
                   VALIDATION SUMMARY
 ============================================================
 Terraform                 : PASS
-WAF Web ACL               : PASS
-WAF Scope                 : PASS (REGIONAL)
-Common Rule Set           : PASS
-SQL Injection Protection  : PASS
-Rate Limit Rule           : PASS
-Rate Limit                : PASS (2000)
-ALB Association           : PASS
+WAF Scope                 : PASS (CLOUDFRONT)
+Web ACL                   : PASS
+Rules (3)                 : PASS
+No ALB Association        : PASS
 CloudWatch Log Group      : PASS
-WAF Logging               : PASS
+WAF Logging                : PASS
+CloudFront Association     : PENDING (verify after modules/cloudfront)
 
 WAF ARN:
-arn:aws:wafv2:us-east-1:631447263037:regional/webacl/retailedge-dev-waf/48099913-e6ed-4d40-8e1e-ba507cf2f856
+arn:aws:wafv2:us-east-1:631447263037:global/webacl/retailedge-dev-waf/6d95c529-1bbf-4451-b091-9586a8768960
 
 Output saved to:
-validation-results/waf-validation.txt
+/mnt/d/cloud/projects/retail-edge-aws/terraform/validation-results/waf-validation.txt
 
 ============================================================
               WAF VALIDATION COMPLETE

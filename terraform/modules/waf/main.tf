@@ -5,7 +5,7 @@ locals {
 resource "aws_wafv2_web_acl" "this" {
   name        = "${local.name_prefix}-waf"
   description = "RetailEdge WAF - managed rules, SQLi protection, rate limiting"
-  scope       = "REGIONAL"
+  scope       = "CLOUDFRONT"
 
   default_action {
     allow {}
@@ -91,11 +91,6 @@ resource "aws_wafv2_web_acl" "this" {
   }
 }
 
-# Associate with ALB 
-resource "aws_wafv2_web_acl_association" "alb" {
-  resource_arn = var.alb_arn
-  web_acl_arn  = aws_wafv2_web_acl.this.arn
-}
 
 # WAF Logging 
 resource "aws_cloudwatch_log_group" "waf" {
