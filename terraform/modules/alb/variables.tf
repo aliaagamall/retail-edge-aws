@@ -25,3 +25,8 @@ variable "certificate_arn" {
   default     = ""
 }
 
+variable "enable_deletion_protection" {
+  type    = bool
+  default = false
+}
+

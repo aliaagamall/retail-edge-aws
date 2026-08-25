@@ -10,6 +10,7 @@ terraform/*.tfplan
 # Terraform variables / secrets
 terraform/*.tfvars
 !terraform/*.tfvars.example
+!environments/*.tfvars
 
 # Terraform
 .terraform/
