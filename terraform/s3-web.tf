@@ -3,5 +3,5 @@ module "s3_web" {
 
   project_name = var.project_name
   environment  = var.environment
-  # cloudfront_distribution_arn will be set after create modules/cloudfront
+  cloudfront_distribution_arn = module.cloudfront.distribution_arn
 }
