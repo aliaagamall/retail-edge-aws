@@ -1,0 +1,41 @@
+============================================================
+            RetailEdge CloudFront Validation
+============================================================
+Date: Thu Aug 27 00:36:32 EEST 2026
+
+1. Checking Terraform
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+✓ valid
+
+Distribution ID     : E2YH71AXPKFX41
+Distribution Domain : d1rdnygvbdkf4t.cloudfront.net
+
+2. Checking Distribution Status
+Status  : Deployed
+Enabled : True
+✓ Distribution enabled
+
+3. Checking Origins
+----------------------------------------------------------------------------------
+|                                 GetDistribution                                |
++---------------------------------------------------------------------+----------+
+|                               Domain                                |   Id     |
++---------------------------------------------------------------------+----------+
+|  retailedge-dev-web-631447263037.s3.us-east-1.amazonaws.com         |  s3-web  |
+|  internal-retailedge-dev-alb-547701342.us-east-1.elb.amazonaws.com  |  alb-api |
++---------------------------------------------------------------------+----------+
+
+4. Checking WAF Association
+✓ WAF attached: arn:aws:wafv2:us-east-1:631447263037:global/webacl/retailedge-dev-waf/8fdb6dbe-7563-4cb2-9756-71e13cdbfbaa
+
+5. Checking S3 Bucket Policy (only set after step 2 below)
+✓ Bucket policy exists
+{"Version":"2012-10-17","Statement":[{"Sid":"AllowCloudFrontServicePrincipalReadOnly","Effect":"Allow","Principal":{"Service":"cloudfront.amazonaws.com"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::retailedge-dev-web-631447263037/*","Condition":{"StringEquals":{"AWS:SourceArn":"arn:aws:cloudfront::631447263037:distribution/E2YH71AXPKFX41"}}}]}
+
+6. Testing HTTPS via CloudFront domain (deployment can take a few minutes)
+HTTP Status: 403
+
+============================================================
+              CLOUDFRONT VALIDATION COMPLETE
+============================================================

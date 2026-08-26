@@ -145,3 +145,12 @@ output "web_bucket_name" {
 output "web_bucket_regional_domain_name" {
   value = module.s3_web.bucket_regional_domain_name
 }
+
+# cloudfront outputs
+output "distribution_id" {
+  value = module.cloudfront.distribution_id
+}
+
+output "distribution_domain_name" {
+  value = module.cloudfront.distribution_domain_name
+}
