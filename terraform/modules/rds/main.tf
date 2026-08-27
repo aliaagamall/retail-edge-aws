@@ -2,13 +2,13 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# Random password 
+# Random password
 resource "random_password" "db" {
-  length  = 20
-  special = false # avoids characters that break MySQL connection strings/URLs
+  length  = var.password_length
+  special = false
 }
 
-# DB Subnet Group 
+# DB Subnet Group
 resource "aws_db_subnet_group" "this" {
   name       = "${local.name_prefix}-db-subnet-group"
   subnet_ids = var.db_subnet_ids
@@ -18,11 +18,11 @@ resource "aws_db_subnet_group" "this" {
   }
 }
 
-# RDS MySQL Instance 
+# RDS MySQL Instance
 resource "aws_db_instance" "this" {
   identifier     = "${local.name_prefix}-mysql"
   engine         = "mysql"
-  engine_version = "8.0"
+  engine_version = var.engine_version
   instance_class = var.instance_class
 
   allocated_storage = var.allocated_storage
@@ -40,22 +40,22 @@ resource "aws_db_instance" "this" {
   multi_az = var.multi_az
 
   backup_retention_period = var.backup_retention_period
-  backup_window           = "03:00-04:00"
-  maintenance_window      = "mon:04:30-mon:05:30"
+  backup_window           = var.backup_window
+  maintenance_window      = var.maintenance_window
 
   skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${local.name_prefix}-mysql-final-snapshot"
 
-  deletion_protection = false
+  deletion_protection = var.deletion_protection
 
   tags = {
     Name = "${local.name_prefix}-mysql"
   }
 }
 
-# Secrets Manager 
+# Secrets Manager
 resource "aws_secretsmanager_secret" "db" {
-  name        = "${var.project_name}/db"
+  name        = "${local.name_prefix}/db"
   description = "RDS MySQL credentials for the RetailEdge application"
 
   tags = {
@@ -65,6 +65,7 @@ resource "aws_secretsmanager_secret" "db" {
 
 resource "aws_secretsmanager_secret_version" "db" {
   secret_id = aws_secretsmanager_secret.db.id
+
   secret_string = jsonencode({
     DB_HOST     = aws_db_instance.this.address
     DB_USER     = var.db_username
