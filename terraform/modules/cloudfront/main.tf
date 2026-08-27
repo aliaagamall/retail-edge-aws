@@ -2,6 +2,18 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
+data "aws_cloudfront_cache_policy" "caching_optimized" {
+  name = "Managed-CachingOptimized"
+}
+
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer" {
+  name = "Managed-AllViewer"
+}
+
 # OAC lets CloudFront sign requests to the private S3 bucket
 resource "aws_cloudfront_origin_access_control" "s3" {
   name                              = "${local.name_prefix}-s3-oac"
@@ -62,7 +74,7 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     compress               = true
-    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Managed-CachingOptimized
+    cache_policy_id = data.aws_cloudfront_cache_policy.caching_optimized.id
   }
 
   # /api/* goes to the internal ALB
@@ -73,8 +85,8 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
     compress                 = false
-    cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # Managed-CachingDisabled
-    origin_request_policy_id = "216adef6-5c7f-47e4-b989-5492eafa07d3" # Managed-AllViewer
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
   }
 
   restrictions {
