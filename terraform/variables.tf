@@ -38,6 +38,14 @@ variable "alb_deletion_protection" {
   default = false
 }
 
+# ---------- WAF ----------
+
+variable "waf_rate_limit" {
+  description = "Maximum requests per 5-minute period per IP before blocking"
+  type        = number
+  default     = 2000
+}
+
 # ---------- RDS ----------
 
 variable "rds_skip_final_snapshot" {
