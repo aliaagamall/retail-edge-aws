@@ -1,9 +1,12 @@
 environment = "prod"
 
 alb_deletion_protection     = true
-rds_skip_final_snapshot     = false
+rds_instance_class          = "db.t3.micro"
+rds_allocated_storage       = 30
 rds_backup_retention_period = 7
-rds_instance_class          = "db.t3.small"
+rds_multi_az                = true
+rds_skip_final_snapshot     = false
+rds_deletion_protection     = true
 
 redis_node_type             = "cache.t3.small"
 
