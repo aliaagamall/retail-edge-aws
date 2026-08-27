@@ -1,5 +1,5 @@
 locals {
-  ng servers" = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}"
 }
 
 data "aws_ec2_managed_prefix_list" "cloudfront" {
@@ -34,6 +34,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   to_port           = 80
   ip_protocol       = "tcp"
 }
+
 # Application Security Group
 resource "aws_security_group" "app" {
   name        = "${local.name_prefix}-app-sg"
@@ -61,7 +62,7 @@ resource "aws_vpc_security_group_egress_rule" "app_all_out" {
   ip_protocol       = "-1"
 }
 
-# RDS Security Group 
+# RDS Security Group
 resource "aws_security_group" "rds" {
   name        = "${local.name_prefix}-rds-sg"
   description = "Allows MySQL from application tier only"
@@ -77,7 +78,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_app" {
   description                  = "MySQL from App SG only"
   referenced_security_group_id = aws_security_group.app.id
   from_port                    = 3306
-  to_port                   var.vpc_id  ip_protocol                  = "tcp"
+  to_port                      = 3306
+  ip_protocol                  = "tcp"
 }
 
 resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
@@ -86,7 +88,8 @@ resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
   ip_protocol       = "-1"
 }
 
-# Redislocal.necurity_group" "redis" {
+# Redis Security Group
+resource "aws_security_group" "redis" {
   name        = "${local.name_prefix}-redis-sg"
   description = "Allows Redis from application tier only"
   vpc_id      = var.vpc_id
