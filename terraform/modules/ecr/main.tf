@@ -1,6 +1,6 @@
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
-  repo_name   = "${var.project_name}-${var.repository_name}"
+  repo_name   = "${local.name_prefix}-${var.repository_name}"
 }
 
 resource "aws_ecr_repository" "this" {
