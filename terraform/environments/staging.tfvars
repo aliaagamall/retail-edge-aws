@@ -1,9 +1,12 @@
 environment = "staging"
 
 alb_deletion_protection     = false
-rds_skip_final_snapshot     = false
-rds_backup_retention_period = 3
 rds_instance_class          = "db.t3.micro"
+rds_allocated_storage       = 20
+rds_backup_retention_period = 7
+rds_multi_az                = true
+rds_skip_final_snapshot     = false
+rds_deletion_protection     = true
 
 redis_node_type             = "cache.t3.micro"
 
