@@ -1,11 +1,15 @@
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  ng servers" = "${var.project_name}-${var.environment}"
+}
+
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
 }
 
 # ALB Security Group
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
-  description = "Allows HTTPS from the internet and HTTP for redirect only"
+  description = "Allows HTTP/HTTPS from CloudFront origin-facing servers"
   vpc_id      = var.vpc_id
 
   tags = {
@@ -15,8 +19,8 @@ resource "aws_security_group" "alb" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   security_group_id = aws_security_group.alb.id
-  description       = "HTTPS from within VPC only (CloudFront VPC Origin ENIs)"
-  cidr_ipv4         = var.vpc_cidr
+  description       = "HTTPS from CloudFront origin-facing servers"
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
@@ -24,13 +28,12 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
-  description       = "HTTP from within VPC only (CloudFront VPC Origin ENIs) - origin protocol is http-only for now"
-  cidr_ipv4         = var.vpc_cidr
+  description       = "HTTP from CloudFront origin-facing servers"
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
 }
-
 # Application Security Group
 resource "aws_security_group" "app" {
   name        = "${local.name_prefix}-app-sg"
@@ -74,8 +77,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_app" {
   description                  = "MySQL from App SG only"
   referenced_security_group_id = aws_security_group.app.id
   from_port                    = 3306
-  to_port                      = 3306
-  ip_protocol                  = "tcp"
+  to_port                   var.vpc_id  ip_protocol                  = "tcp"
 }
 
 resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
@@ -84,8 +86,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
   ip_protocol       = "-1"
 }
 
-# Redis Security Group
-resource "aws_security_group" "redis" {
+# Redislocal.necurity_group" "redis" {
   name        = "${local.name_prefix}-redis-sg"
   description = "Allows Redis from application tier only"
   vpc_id      = var.vpc_id
