@@ -2,14 +2,14 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# Random auth token (Redis requires 16-128 chars, no special chars issues) 
+# Random auth token
 resource "random_password" "redis_auth" {
   count   = var.auth_enabled ? 1 : 0
-  length  = 32
+  length  = var.auth_token_length
   special = false
 }
 
-# Subnet Group 
+# Subnet Group
 resource "aws_elasticache_subnet_group" "this" {
   name       = "${local.name_prefix}-redis-subnet-group"
   subnet_ids = var.db_subnet_ids
@@ -19,28 +19,29 @@ resource "aws_elasticache_subnet_group" "this" {
   }
 }
 
-# Redis Replication Group (Multi-AZ + Failover + Replica) 
+# Redis Replication Group
 resource "aws_elasticache_replication_group" "this" {
   replication_group_id = "${local.name_prefix}-redis"
   description          = "RetailEdge Redis cache"
 
   engine         = "redis"
-  engine_version = "7.1"
+  engine_version = var.engine_version
   node_type      = var.node_type
   port           = 6379
 
-  # Cluster Mode: Disabled -> single shard, num_node_groups omitted
-  num_cache_clusters = 2 # 1 primary + 1 replica
+  # Cluster Mode disabled: one shard with primary + replica
+  num_cache_clusters = var.num_cache_clusters
 
-  automatic_failover_enabled = true
-  multi_az_enabled           = true
+  automatic_failover_enabled = var.automatic_failover_enabled
+  multi_az_enabled           = var.multi_az_enabled
 
   subnet_group_name  = aws_elasticache_subnet_group.this.name
   security_group_ids = [var.redis_sg_id]
 
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  auth_token                 = var.auth_enabled ? random_password.redis_auth[0].result : null
+
+  auth_token = var.auth_enabled ? random_password.redis_auth[0].result : null
 
   auto_minor_version_upgrade = true
 
@@ -49,10 +50,10 @@ resource "aws_elasticache_replication_group" "this" {
   }
 }
 
-# Secrets Manager (only if auth enabled) 
+# Secrets Manager
 resource "aws_secretsmanager_secret" "redis" {
   count       = var.auth_enabled ? 1 : 0
-  name        = "${var.project_name}/redis"
+  name        = "${local.name_prefix}/redis"
   description = "Redis auth token and connection info for the RetailEdge application"
 
   tags = {
