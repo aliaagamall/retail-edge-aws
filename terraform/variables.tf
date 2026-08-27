@@ -123,8 +123,45 @@ variable "rds_deletion_protection" {
 # ---------- ElastiCache ----------
 
 variable "redis_node_type" {
-  type    = string
-  default = "cache.t3.micro"
+  description = "ElastiCache Redis node type"
+  type        = string
+  default     = "cache.t3.micro"
+}
+
+variable "redis_engine_version" {
+  description = "Redis engine version"
+  type        = string
+  default     = "7.1"
+}
+
+variable "redis_num_cache_clusters" {
+  description = "Number of Redis nodes in the replication group"
+  type        = number
+  default     = 2
+}
+
+variable "redis_automatic_failover_enabled" {
+  description = "Enable automatic Redis failover"
+  type        = bool
+  default     = true
+}
+
+variable "redis_multi_az_enabled" {
+  description = "Enable Redis Multi-AZ"
+  type        = bool
+  default     = true
+}
+
+variable "redis_auth_enabled" {
+  description = "Enable Redis AUTH token"
+  type        = bool
+  default     = true
+}
+
+variable "redis_auth_token_length" {
+  description = "Length of the generated Redis AUTH token"
+  type        = number
+  default     = 32
 }
 
 # ---------- Compute ----------
