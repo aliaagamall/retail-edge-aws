@@ -115,3 +115,51 @@ resource "aws_autoscaling_group" "app" {
     propagate_at_launch = true
   }
 }
+
+resource "aws_autoscaling_policy" "cpu_target_tracking" {
+  name                   = "${local.name_prefix}-cpu-target-tracking"
+  autoscaling_group_name = aws_autoscaling_group.app.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 60.0
+  }
+}
+
+locals {
+  black_friday_scale_up_cron = "0 ${var.scale_up_hour} ${var.scale_up_day} ${var.scale_up_month} *"
+
+  black_friday_scale_down_cron = "0 ${var.scale_down_hour} ${var.scale_down_day} ${var.scale_down_month} *"
+}
+
+resource "aws_autoscaling_schedule" "black_friday_scale_up" {
+  count = var.enable_scheduled_scaling ? 1 : 0
+
+  scheduled_action_name  = "${local.name_prefix}-black-friday-scale-up"
+  autoscaling_group_name = aws_autoscaling_group.app.name
+
+  min_size         = var.scheduled_min_size
+  max_size         = var.scheduled_max_size
+  desired_capacity = var.scheduled_desired_capacity
+
+  recurrence = local.black_friday_scale_up_cron
+  time_zone  = "UTC"
+}
+
+resource "aws_autoscaling_schedule" "black_friday_scale_down" {
+  count = var.enable_scheduled_scaling ? 1 : 0
+
+  scheduled_action_name  = "${local.name_prefix}-black-friday-scale-down"
+  autoscaling_group_name = aws_autoscaling_group.app.name
+
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
+
+  recurrence = local.black_friday_scale_down_cron
+  time_zone  = "UTC"
+}
