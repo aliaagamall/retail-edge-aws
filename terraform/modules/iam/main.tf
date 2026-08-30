@@ -5,9 +5,8 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
-# =====================================================================
 # EC2 Instance Role
-# =====================================================================
+
 data "aws_iam_policy_document" "ec2_assume" {
   statement {
     effect  = "Allow"
@@ -35,6 +34,8 @@ resource "aws_iam_instance_profile" "ec2_app" {
 }
 
 # --- Secrets Manager: read-only, scoped to project secrets only ---
+# Used both by the application code itself (config/secrets.js at
+# container startup) and, if needed, by the bootstrap script.
 data "aws_iam_policy_document" "secrets_read" {
   statement {
     effect    = "Allow"
@@ -53,7 +54,7 @@ resource "aws_iam_role_policy_attachment" "secrets_read" {
   policy_arn = aws_iam_policy.secrets_read.arn
 }
 
-# --- ECR: pull permissions only ---
+# ECR: pull permissions only 
 data "aws_iam_policy_document" "ecr_pull" {
   statement {
     effect = "Allow"
@@ -86,15 +87,16 @@ resource "aws_iam_role_policy_attachment" "ecr_pull" {
   policy_arn = aws_iam_policy.ecr_pull.arn
 }
 
-# --- SSM: managed instance core (Session Manager, no SSH needed) ---
+# SSM: managed instance core (Session Manager, no SSH needed).
+# Also grants ssm:GetParameter used by the bootstrap script to read
+# /retailedge/<env>/current-image, and allows Lambda to
+# reach the instance via SSM Run Command for deployment orchestration.
 resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.ec2_app.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# =====================================================================
 # GitHub Actions OIDC Role
-# =====================================================================
 data "tls_certificate" "github" {
   url = "https://token.actions.githubusercontent.com/.well-known/openid-configuration"
 }
@@ -143,7 +145,9 @@ resource "aws_iam_role" "github_deploy" {
   }
 }
 
-# --- Deploy permissions: push to ECR + trigger CodeDeploy ---
+# Deploy permissions: push to ECR + record the new image in SSM 
+# Lambda, which GitHub Actions will invoke
+# once that Lambda exists.
 data "aws_iam_policy_document" "github_deploy" {
   statement {
     effect = "Allow"
@@ -170,14 +174,11 @@ data "aws_iam_policy_document" "github_deploy" {
   statement {
     effect = "Allow"
     actions = [
-      "codedeploy:CreateDeployment",
-      "codedeploy:GetDeployment",
-      "codedeploy:GetDeploymentConfig",
-      "codedeploy:GetApplicationRevision",
-      "codedeploy:RegisterApplicationRevision",
+      "ssm:PutParameter",
+      "ssm:GetParameter",
     ]
     resources = [
-      "arn:aws:codedeploy:${var.aws_region}:${local.account_id}:*"
+      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/retailedge/*"
     ]
   }
 }

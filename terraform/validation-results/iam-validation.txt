@@ -1,7 +1,7 @@
 =========================================
        RetailEdge IAM Validation
 =========================================
-Date: Mon Aug 17 21:22:03 EEST 2026
+Date: Sun Aug 30 17:40:56 EEST 2026
 
 AWS Account ID: 631447263037
 
@@ -84,8 +84,8 @@ Checking required EC2 policies...
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:aliaagamall/retailedge-app:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:aliaagamall/retailedge-app:ref:refs/heads/main",
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
         }
       }
     }
@@ -101,7 +101,30 @@ Checking required EC2 policies...
   Repository: aliaagamall/retailedge-app
 
 -----------------------------------------
-12. IAM Summary
+12. Checking GitHub Deploy Policy
+-----------------------------------------
+✓ GitHub deploy policy found
+  Policy ARN: arn:aws:iam::631447263037:policy/retailedge-dev-github-deploy-policy
+
+Checking required permissions...
+✓ ssm:PutParameter
+✓ ssm:GetParameter
+
+Checking required ECR permissions...
+✓ ecr:GetAuthorizationToken
+✓ ecr:BatchCheckLayerAvailability
+✓ ecr:PutImage
+✓ ecr:InitiateLayerUpload
+✓ ecr:UploadLayerPart
+✓ ecr:CompleteLayerUpload
+
+Checking that CodeDeploy permissions were removed...
+✓ No CodeDeploy permissions found
+
+✓ GitHub Deploy Policy validation passed
+
+-----------------------------------------
+13. IAM Summary
 -----------------------------------------
 
 EC2 Role:

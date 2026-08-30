@@ -15,9 +15,6 @@ echo "========================================="
 echo "Date: $(date)"
 echo
 
-# --------------------------------------------------
-# AWS Account
-# --------------------------------------------------
 
 ACCOUNT_ID=$(aws sts get-caller-identity \
   --query Account \
@@ -26,9 +23,6 @@ ACCOUNT_ID=$(aws sts get-caller-identity \
 echo "AWS Account ID: $ACCOUNT_ID"
 echo
 
-# --------------------------------------------------
-# 1. Terraform Validation
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "1. Checking Terraform"
@@ -39,9 +33,6 @@ terraform validate
 echo "✓ Terraform configuration is valid"
 echo
 
-# --------------------------------------------------
-# 2. Get Terraform Outputs
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "2. Reading Terraform IAM Outputs"
@@ -57,9 +48,6 @@ echo "EC2 Instance Profile : $INSTANCE_PROFILE"
 echo "GitHub Deploy Role   : $GITHUB_ROLE"
 echo
 
-# --------------------------------------------------
-# 3. EC2 Instance Profile
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "3. Checking EC2 Instance Profile"
@@ -91,9 +79,6 @@ fi
 echo "✓ EC2 Role: $EC2_ROLE"
 echo
 
-# --------------------------------------------------
-# 4. EC2 Role
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "4. Checking EC2 IAM Role"
@@ -112,10 +97,6 @@ fi
 
 echo
 
-# --------------------------------------------------
-# 5. EC2 Role Policies
-# --------------------------------------------------
-
 echo "-----------------------------------------"
 echo "5. Checking EC2 Role Policies"
 echo "-----------------------------------------"
@@ -128,10 +109,6 @@ aws iam list-attached-role-policies \
     --output table
 
 echo
-
-# --------------------------------------------------
-# Required EC2 Policies
-# --------------------------------------------------
 
 echo "Checking required EC2 policies..."
 
@@ -159,10 +136,6 @@ done
 
 echo
 
-# --------------------------------------------------
-# 6. EC2 Trust Policy
-# --------------------------------------------------
-
 echo "-----------------------------------------"
 echo "6. Checking EC2 Trust Policy"
 echo "-----------------------------------------"
@@ -186,9 +159,6 @@ fi
 
 echo
 
-# --------------------------------------------------
-# 7. GitHub OIDC Provider
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "7. Checking GitHub OIDC Provider"
@@ -211,9 +181,6 @@ fi
 
 echo
 
-# --------------------------------------------------
-# 8. GitHub Deploy Role
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "8. Checking GitHub Deploy Role"
@@ -234,9 +201,6 @@ fi
 
 echo
 
-# --------------------------------------------------
-# 9. GitHub Role Policies
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "9. Checking GitHub Role Policies"
@@ -248,10 +212,6 @@ aws iam list-attached-role-policies \
     --output table
 
 echo
-
-# --------------------------------------------------
-# 10. GitHub OIDC Trust Policy
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "10. Checking GitHub OIDC Trust Policy"
@@ -284,9 +244,6 @@ fi
 
 echo
 
-# --------------------------------------------------
-# 11. GitHub Repository Restriction
-# --------------------------------------------------
 
 echo "-----------------------------------------"
 echo "11. Checking GitHub Repository Restriction"
@@ -305,12 +262,157 @@ fi
 
 echo
 
+echo "-----------------------------------------"
+echo "12. Checking GitHub Deploy Policy"
+echo "-----------------------------------------"
+
+GITHUB_POLICY_ARN=$(aws iam list-attached-role-policies \
+    --role-name "$GITHUB_ROLE" \
+    --query "AttachedPolicies[?PolicyName=='retailedge-dev-github-deploy-policy'].PolicyArn" \
+    --output text)
+
+if [ -z "$GITHUB_POLICY_ARN" ] || [ "$GITHUB_POLICY_ARN" = "None" ]; then
+
+    echo "✗ GitHub deploy policy NOT found"
+    exit 1
+
+fi
+
+echo "✓ GitHub deploy policy found"
+echo "  Policy ARN: $GITHUB_POLICY_ARN"
+echo
+
+# Get default policy version
+
+POLICY_VERSION=$(aws iam get-policy \
+    --policy-arn "$GITHUB_POLICY_ARN" \
+    --query 'Policy.DefaultVersionId' \
+    --output text)
+
+GITHUB_POLICY=$(aws iam get-policy-version \
+    --policy-arn "$GITHUB_POLICY_ARN" \
+    --version-id "$POLICY_VERSION" \
+    --query 'PolicyVersion.Document' \
+    --output json)
+
+echo "Checking required permissions..."
+
 # --------------------------------------------------
-# 12. IAM Role Summary
+# SSM permissions
+# --------------------------------------------------
+
+if echo "$GITHUB_POLICY" | jq -e '
+    .Statement[] |
+    select(.Effect == "Allow") |
+    .Action |
+    if type == "array"
+    then index("ssm:PutParameter") != null
+    else . == "ssm:PutParameter"
+    end
+' > /dev/null; then
+
+    echo "✓ ssm:PutParameter"
+
+else
+
+    echo "✗ Missing ssm:PutParameter"
+    exit 1
+
+fi
+
+if echo "$GITHUB_POLICY" | jq -e '
+    .Statement[] |
+    select(.Effect == "Allow") |
+    .Action |
+    if type == "array"
+    then index("ssm:GetParameter") != null
+    else . == "ssm:GetParameter"
+    end
+' > /dev/null; then
+
+    echo "✓ ssm:GetParameter"
+
+else
+
+    echo "✗ Missing ssm:GetParameter"
+    exit 1
+
+fi
+
+# --------------------------------------------------
+# ECR permissions
+# --------------------------------------------------
+
+REQUIRED_ECR_ACTIONS=(
+    "ecr:GetAuthorizationToken"
+    "ecr:BatchCheckLayerAvailability"
+    "ecr:PutImage"
+    "ecr:InitiateLayerUpload"
+    "ecr:UploadLayerPart"
+    "ecr:CompleteLayerUpload"
+)
+
+echo
+echo "Checking required ECR permissions..."
+
+for ACTION in "${REQUIRED_ECR_ACTIONS[@]}"; do
+
+    if echo "$GITHUB_POLICY" | jq -e \
+        --arg ACTION "$ACTION" '
+        [.Statement[].Action]
+        | flatten
+        | index($ACTION) != null
+        ' > /dev/null; then
+
+        echo "✓ $ACTION"
+
+    else
+
+        echo "✗ Missing $ACTION"
+        exit 1
+
+    fi
+
+done
+
+# --------------------------------------------------
+# CodeDeploy must NOT exist
+# --------------------------------------------------
+
+echo
+echo "Checking that CodeDeploy permissions were removed..."
+
+if echo "$GITHUB_POLICY" | jq -e '
+    [.Statement[].Action] |
+    flatten |
+    map(select(type == "string" and startswith("codedeploy:"))) |
+    length == 0
+' > /dev/null; then
+
+    echo "✓ No CodeDeploy permissions found"
+
+else
+
+    echo "✗ CodeDeploy permissions still exist"
+    echo "$GITHUB_POLICY" | jq '
+        [.Statement[].Action] |
+        flatten |
+        map(select(type == "string" and startswith("codedeploy:")))
+    '
+    exit 1
+
+fi
+
+echo
+echo "✓ GitHub Deploy Policy validation passed"
+echo
+
+# --------------------------------------------------
+# 13. IAM Role Summary
 # --------------------------------------------------
 
 echo "-----------------------------------------"
-echo "12. IAM Summary"
+echo "13. IAM Summary"
 echo "-----------------------------------------"
 
 echo
@@ -336,5 +438,5 @@ echo "  $OIDC_ARN"
 echo
 
 echo "========================================="
-echo "       IAM Validation Complete"
+echo "       IAM Validation Complete 😋"
 echo "========================================="
