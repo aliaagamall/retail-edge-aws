@@ -38,6 +38,12 @@ variable "alb_deletion_protection" {
   default = false
 }
 
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS. Leave empty (\"\") to run HTTP-only until a domain/cert exists."
+  type        = string
+  default     = ""
+}
+
 # ---------- WAF ----------
 
 variable "waf_rate_limit" {
