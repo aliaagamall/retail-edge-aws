@@ -18,8 +18,13 @@ data "aws_ami" "al2023" {
   }
 }
 
-# User data: base AMI setup only - Docker + CodeDeploy Agent + SSM Agent 
-# releases are handled entirely by CodeDeploy.
+data "aws_region" "current" {}
+
+# User data: base AMI setup + conditional application bootstrap.
+# CodeDeploy is no longer part of this architecture - deployment
+# orchestration happens via Lambda + SSM (added separately).
+# This script only handles the initial container start on boot, reading
+# the current image tag from SSM Parameter Store.
 locals {
   user_data = <<-EOF
     #!/bin/bash
@@ -33,22 +38,49 @@ locals {
     systemctl start docker
     usermod -aG docker ec2-user
 
-    # CodeDeploy Agent
-    dnf install -y ruby wget
-    cd /home/ec2-user
-    wget https://aws-codedeploy-${data.aws_region.current.name}.s3.${data.aws_region.current.name}.amazonaws.com/latest/install
-    chmod +x ./install
-    ./install auto
-    systemctl enable codedeploy-agent
-    systemctl start codedeploy-agent
-
     # SSM Agent (pre-installed on AL2023, ensure it's running)
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
+
+    # ---------------------------------------------------------------
+    # Conditional application bootstrap
+    # ---------------------------------------------------------------
+    # The application reads its own DB/Redis secrets from Secrets
+    # Manager at container startup (see config/secrets.js), so no
+    # secrets are injected here - only the image reference is needed.
+
+    REGION="${data.aws_region.current.name}"
+    ECR_REPO="${var.ecr_repository_url}"
+    SSM_PARAM="${var.ssm_parameter_name}"
+
+    IMAGE_TAG=$(aws ssm get-parameter \
+      --name "$SSM_PARAM" \
+      --region "$REGION" \
+      --query "Parameter.Value" \
+      --output text 2>/dev/null || echo "none")
+
+    if [ "$IMAGE_TAG" = "none" ] || [ -z "$IMAGE_TAG" ]; then
+      echo "[BOOTSTRAP] No image recorded yet in $SSM_PARAM - instance ready, waiting for first deployment."
+      exit 0
+    fi
+
+    echo "[BOOTSTRAP] Found image tag: $IMAGE_TAG - pulling and starting container."
+
+    aws ecr get-login-password --region "$REGION" \
+      | docker login --username AWS --password-stdin "$ECR_REPO"
+
+    docker pull "$ECR_REPO:$IMAGE_TAG"
+
+    docker run -d \
+      --name retailedge-app \
+      --restart unless-stopped \
+      -p 8080:8080 \
+      -e AWS_REGION="$REGION" \
+      "$ECR_REPO:$IMAGE_TAG"
+
+    echo "[BOOTSTRAP] Container started successfully."
   EOF
 }
-
-data "aws_region" "current" {}
 
 # Launch Template 
 resource "aws_launch_template" "app" {

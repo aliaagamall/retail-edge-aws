@@ -98,3 +98,13 @@ variable "scheduled_desired_capacity" {
   type    = number
   default = 15
 }
+
+variable "ecr_repository_url" {
+  description = "ECR repository URL to pull the application image from"
+  type        = string
+}
+
+variable "ssm_parameter_name" {
+  description = "SSM Parameter Store path holding the current deployed image tag"
+  type        = string
+}
