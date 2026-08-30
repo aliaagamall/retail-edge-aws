@@ -3,7 +3,7 @@
 set -e
 
 REGION="us-east-1"
-BUCKET_NAME="retailedge-dev-tfstate"
+BUCKET_NAME="retailedge-tfstate"
 
 echo "======================================"
 echo "RetailEdge Terraform Backend Cleanup"
