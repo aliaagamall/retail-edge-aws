@@ -13,3 +13,8 @@ variable "vpc_id" {
 variable "vpc_cidr" {
   type = string
 }
+variable "certificate_arn" {
+  description = "ACM certificate ARN. Leave empty to run HTTP-only (no domain yet)."
+  type        = string
+  default     = ""
+}

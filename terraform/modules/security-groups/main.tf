@@ -1,9 +1,6 @@
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
-data "aws_ec2_managed_prefix_list" "cloudfront" {
-  name = "com.amazonaws.global.cloudfront.origin-facing"
+  name_prefix   = "${var.project_name}-${var.environment}"
+  https_enabled = var.certificate_arn != ""
 }
 
 # ALB Security Group
@@ -17,10 +14,12 @@ resource "aws_security_group" "alb" {
   }
 }
 
+
 resource "aws_vpc_security_group_ingress_rule" "alb_https" {
+  count             = local.https_enabled ? 1 : 0
   security_group_id = aws_security_group.alb.id
-  description       = "HTTPS from CloudFront origin-facing servers"
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
+  description       = "HTTPS from within VPC only (CloudFront VPC Origin ENIs)"
+  cidr_ipv4         = var.vpc_cidr
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
@@ -28,8 +27,8 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
-  description       = "HTTP from CloudFront origin-facing servers"
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
+  description       = "HTTP from within VPC only (CloudFront VPC Origin ENIs)"
+  cidr_ipv4         = var.vpc_cidr
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
