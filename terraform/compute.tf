@@ -13,7 +13,7 @@ module "compute" {
   desired_capacity      = var.asg_desired_capacity
 
   ecr_repository_url = module.ecr.repository_url
-  ssm_parameter_name = "/retailedge/${var.environment}/current-image"
+  ssm_parameter_name = module.ssm_parameters.current_image_parameter_name
 
   enable_scheduled_scaling = var.enable_black_friday_scaling
 
