@@ -8,4 +8,5 @@ module "cloudfront" {
   alb_arn                        = module.alb.alb_arn
   alb_dns_name                   = module.alb.alb_dns_name
   waf_web_acl_arn                = module.waf.web_acl_arn
+  alb_https_enabled              = module.alb.https_enabled
 }

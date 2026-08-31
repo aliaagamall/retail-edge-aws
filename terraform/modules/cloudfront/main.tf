@@ -25,12 +25,11 @@ resource "aws_cloudfront_origin_access_control" "s3" {
 # VPC Origin lets CloudFront reach the internal ALB without a public IP
 resource "aws_cloudfront_vpc_origin" "alb" {
   vpc_origin_endpoint_config {
-    name       = "${local.name_prefix}-alb-vpc-origin"
-    arn        = var.alb_arn
-    http_port  = 80
-    https_port = 443
-    # No ACM certificate yet, so the ALB only has an HTTP listener
-    origin_protocol_policy = "http-only"
+    name                   = "${local.name_prefix}-alb-vpc-origin"
+    arn                    = var.alb_arn
+    http_port              = 80
+    https_port             = 443
+    origin_protocol_policy = var.alb_https_enabled ? "https-only" : "http-only"
 
     origin_ssl_protocols {
       items    = ["TLSv1.2"]
@@ -74,7 +73,7 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     compress               = true
-    cache_policy_id = data.aws_cloudfront_cache_policy.caching_optimized.id
+    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
   }
 
   # /api/* goes to the internal ALB

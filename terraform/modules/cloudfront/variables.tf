@@ -31,3 +31,9 @@ variable "price_class" {
   type    = string
   default = "PriceClass_100" # because it's the cheapset one
 }
+
+variable "alb_https_enabled" {
+  description = "Whether HTTPS is enabled on the ALB"
+  type        = bool
+  default     = false
+}
