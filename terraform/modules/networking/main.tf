@@ -22,6 +22,8 @@ resource "aws_internet_gateway" "this" {
 }
 
 # ---------- Public Subnets ----------
+# Public subnets are reserved for future infrastructure requirements
+# such as NAT Gateway or bastion host.
 resource "aws_subnet" "public" {
   count                   = length(var.azs)
   vpc_id                  = aws_vpc.this.id
