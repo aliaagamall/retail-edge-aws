@@ -38,11 +38,6 @@ variable "alb_deletion_protection" {
   default = false
 }
 
-variable "certificate_arn" {
-  description = "ACM certificate ARN for HTTPS. Leave empty (\"\") to run HTTP-only until a domain/cert exists."
-  type        = string
-  default     = ""
-}
 
 # ---------- WAF ----------
 
@@ -50,6 +45,12 @@ variable "waf_rate_limit" {
   description = "Maximum requests per 5-minute period per IP before blocking"
   type        = number
   default     = 2000
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS. Leave empty (\"\") to run HTTP-only until a domain/cert exists."
+  type        = string
+  default     = ""
 }
 
 # ---------- RDS ----------
@@ -169,6 +170,12 @@ variable "redis_auth_token_length" {
   type        = number
   default     = 32
 }
+# secrets
+variable "secret_recovery_window_in_days" {
+  description = "Number of days before Secrets Manager permanently deletes the secret"
+  type        = number
+  default     = 0
+}
 
 # ---------- Compute ----------
 
@@ -190,4 +197,54 @@ variable "asg_max_size" {
 variable "asg_desired_capacity" {
   type    = number
   default = 2
+}
+
+variable "enable_black_friday_scaling" {
+  type    = bool
+  default = false
+}
+
+variable "black_friday_scale_up_day" {
+  type    = number
+  default = 25
+}
+
+variable "black_friday_scale_up_month" {
+  type    = number
+  default = 11
+}
+
+variable "black_friday_scale_up_hour" {
+  type    = number
+  default = 0
+}
+
+variable "black_friday_scale_down_day" {
+  type    = number
+  default = 29
+}
+
+variable "black_friday_scale_down_month" {
+  type    = number
+  default = 11
+}
+
+variable "black_friday_scale_down_hour" {
+  type    = number
+  default = 6
+}
+
+variable "black_friday_min_size" {
+  type    = number
+  default = 10
+}
+
+variable "black_friday_max_size" {
+  type    = number
+  default = 17
+}
+
+variable "black_friday_desired_capacity" {
+  type    = number
+  default = 15
 }

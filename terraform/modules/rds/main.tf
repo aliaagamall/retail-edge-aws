@@ -55,9 +55,9 @@ resource "aws_db_instance" "this" {
 
 # Secrets Manager
 resource "aws_secretsmanager_secret" "db" {
-  name        = "${local.name_prefix}/db"
-  description = "RDS MySQL credentials for the RetailEdge application"
-
+  name                    = "${local.name_prefix}/db"
+  description             = "RDS MySQL credentials for the RetailEdge application"
+  recovery_window_in_days = var.secret_recovery_window_in_days
   tags = {
     Name = "${local.name_prefix}-db-secret"
   }

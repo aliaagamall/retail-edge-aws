@@ -15,6 +15,8 @@ redis_automatic_failover_enabled = true
 redis_multi_az_enabled           = true
 redis_auth_enabled               = true
 
+secret_recovery_window_in_days = 30
+
 app_instance_type = "t3.small"
 
 asg_min_size         = 2

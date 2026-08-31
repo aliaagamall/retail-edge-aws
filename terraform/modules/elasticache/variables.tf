@@ -56,3 +56,9 @@ variable "auth_token_length" {
   type        = number
   default     = 32
 }
+
+variable "secret_recovery_window_in_days" {
+  description = "Number of days before the Redis secret is permanently deleted"
+  type        = number
+  default     = 0
+}

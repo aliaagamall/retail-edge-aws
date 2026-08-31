@@ -85,3 +85,9 @@ variable "deletion_protection" {
   type        = bool
   default     = false
 }
+
+variable "secret_recovery_window_in_days" {
+  description = "Number of days before the DB secret is permanently deleted"
+  type        = number
+  default     = 0
+}

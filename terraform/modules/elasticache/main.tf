@@ -52,9 +52,10 @@ resource "aws_elasticache_replication_group" "this" {
 
 # Secrets Manager
 resource "aws_secretsmanager_secret" "redis" {
-  count       = var.auth_enabled ? 1 : 0
-  name        = "${local.name_prefix}/redis"
-  description = "Redis auth token and connection info for the RetailEdge application"
+  count                   = var.auth_enabled ? 1 : 0
+  name                    = "${local.name_prefix}/redis"
+  description             = "Redis auth token and connection info for the RetailEdge application"
+  recovery_window_in_days = var.secret_recovery_window_in_days
 
   tags = {
     Name = "${local.name_prefix}-redis-secret"
