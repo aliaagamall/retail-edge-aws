@@ -17,6 +17,7 @@ module "rds" {
   backup_retention_period = var.rds_backup_retention_period
   backup_window           = var.rds_backup_window
   maintenance_window      = var.rds_maintenance_window
+  secret_recovery_window_in_days = var.secret_recovery_window_in_days
 
   multi_az            = var.rds_multi_az
   skip_final_snapshot = var.rds_skip_final_snapshot
