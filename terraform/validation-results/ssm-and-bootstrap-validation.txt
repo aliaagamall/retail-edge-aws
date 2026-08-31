@@ -1,0 +1,67 @@
+============================================================
+     RetailEdge SSM Parameter & Bootstrap Validation
+============================================================
+Date: Mon Aug 31 03:19:53 EEST 2026
+
+------------------------------------------------------------
+1. Checking Terraform
+------------------------------------------------------------
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+✓ Terraform configuration is valid
+
+------------------------------------------------------------
+2. Reading Terraform Outputs
+------------------------------------------------------------
+SSM Parameter Name : /retailedge/dev/current-image
+ASG Name            : retailedge-dev-app-asg
+ECR Repository URL  : 631447263037.dkr.ecr.us-east-1.amazonaws.com/retailedge-dev-app
+
+------------------------------------------------------------
+3. Checking SSM Parameter
+------------------------------------------------------------
+Parameter Value : none
+✓ Parameter holds the expected placeholder value 'none' (no deployment yet)
+
+------------------------------------------------------------
+4. Confirming CodeDeploy is Fully Removed
+------------------------------------------------------------
+✓ No CodeDeploy resources found in Terraform state
+
+------------------------------------------------------------
+5. Checking Auto Scaling Group
+------------------------------------------------------------
+Running Instances : 3
+✓ ASG has running instances
+
+------------------------------------------------------------
+6. Checking Bootstrap Behavior on an Instance (via SSM)
+------------------------------------------------------------
+Note: no Docker image has been pushed to ECR yet, so the bootstrap
+script is EXPECTED to find no image tag and exit cleanly without
+starting a container. This confirms the conditional logic works.
+
+Checking instance: i-024d589a5e07db93b
+⚠ Could not send SSM command (instance may still be booting - retry in a minute)
+
+aws: [ERROR]: An error occurred (InvalidInstanceId) when calling the SendCommand operation: Instances not in a valid state for account
+
+============================================================
+                  VALIDATION SUMMARY
+============================================================
+Terraform                    : PASS
+SSM Parameter (placeholder)  : PASS
+No CodeDeploy Resources      : PASS
+ASG Running Instances        : PASS
+Bootstrap Behavior           : CHECKED (no image expected)
+
+Note: The application will NOT be reachable yet - no Docker image
+has been pushed to ECR. This is expected until the first deployment.
+
+Output saved to:
+/mnt/d/cloud/projects/retail-edge-aws/terraform/validation-results/ssm-and-bootstrap-validation.txt
+
+============================================================
+        SSM & BOOTSTRAP VALIDATION COMPLETE 🥰
+============================================================

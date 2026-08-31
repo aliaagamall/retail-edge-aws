@@ -154,3 +154,9 @@ output "distribution_id" {
 output "distribution_domain_name" {
   value = module.cloudfront.distribution_domain_name
 }
+
+# ssm-parameter output
+
+output "current_image_parameter_name" {
+  value = module.ssm_parameters.current_image_parameter_name
+}
