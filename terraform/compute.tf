@@ -28,4 +28,7 @@ module "compute" {
   scheduled_min_size         = var.black_friday_min_size
   scheduled_max_size         = var.black_friday_max_size
   scheduled_desired_capacity = var.black_friday_desired_capacity
+
+  db_secret_name    = module.rds.db_secret_name
+  redis_secret_name = module.elasticache.redis_secret_name
 }

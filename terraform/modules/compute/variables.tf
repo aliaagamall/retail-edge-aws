@@ -108,3 +108,13 @@ variable "ssm_parameter_name" {
   description = "SSM Parameter Store path holding the current deployed image tag"
   type        = string
 }
+
+variable "db_secret_name" {
+  description = "Secrets Manager secret name holding DB credentials"
+  type        = string
+}
+
+variable "redis_secret_name" {
+  description = "Secrets Manager secret name holding Redis credentials"
+  type        = string
+}

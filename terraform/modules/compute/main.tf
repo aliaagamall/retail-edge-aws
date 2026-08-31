@@ -72,11 +72,13 @@ locals {
     docker pull "$ECR_REPO:$IMAGE_TAG"
 
     docker run -d \
-      --name retailedge-app \
-      --restart unless-stopped \
-      -p 8080:8080 \
-      -e AWS_REGION="$REGION" \
-      "$ECR_REPO:$IMAGE_TAG"
+     --name retailedge-app \
+     --restart unless-stopped \
+     -p 8080:8080 \
+     -e AWS_REGION="$REGION" \
+     -e DB_SECRET_NAME="${var.db_secret_name}" \
+     -e REDIS_SECRET_NAME="${var.redis_secret_name}" \
+     "$ECR_REPO:$IMAGE_TAG"
 
     echo "[BOOTSTRAP] Container started successfully."
   EOF
