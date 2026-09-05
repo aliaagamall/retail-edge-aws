@@ -33,21 +33,66 @@ locals {
     dnf update -y
 
     # Docker
+
     dnf install -y docker
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ec2-user
 
-    # SSM Agent (pre-installed on AL2023, ensure it's running)
+    # AWS CLI
+
+    dnf install -y awscli
+
+    # SSM Agent
+
+    # Pre-installed on Amazon Linux 2023, ensure it is running.
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
 
-    # ---------------------------------------------------------------
-    # Conditional application bootstrap
-    # ---------------------------------------------------------------
-    # The application reads its own DB/Redis secrets from Secrets
-    # Manager at container startup (see config/secrets.js), so no
-    # secrets are injected here - only the image reference is needed.
+    # CloudWatch Agent
+    # Collects EC2 metrics that are not available by default, such as memory utilization.
+    dnf install -y amazon-cloudwatch-agent
+
+    cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CWCONFIG'
+    {
+      "agent": {
+        "metrics_collection_interval": 60
+      },
+      "metrics": {
+        "namespace": "CWAgent",
+        "append_dimensions": {
+          "AutoScalingGroupName": "$${aws:AutoScalingGroupName}"
+        },
+        "metrics_collected": {
+          "mem": {
+            "measurement": [
+              "mem_used_percent"
+            ],
+            "metrics_collection_interval": 60
+          },
+          "disk": {
+            "measurement": [
+              "used_percent"
+            ],
+            "resources": [
+              "/"
+            ],
+            "metrics_collection_interval": 60
+          }
+        }
+      }
+    }
+    CWCONFIG
+
+    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+      -a fetch-config \
+      -m ec2 \
+      -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
+      -s
+
+    # Application bootstrap
+    # The application retrieves DB and Redis secrets from AWS Secrets Manager at container startup.
+    # No secrets are stored in User Data.
 
     REGION="${data.aws_region.current.name}"
     ECR_REPO="${var.ecr_repository_url}"
@@ -72,13 +117,13 @@ locals {
     docker pull "$ECR_REPO:$IMAGE_TAG"
 
     docker run -d \
-     --name retailedge-app \
-     --restart unless-stopped \
-     -p 8080:8080 \
-     -e AWS_REGION="$REGION" \
-     -e DB_SECRET_NAME="${var.db_secret_name}" \
-     -e REDIS_SECRET_NAME="${var.redis_secret_name}" \
-     "$ECR_REPO:$IMAGE_TAG"
+      --name retailedge-app \
+      --restart unless-stopped \
+      -p 8080:8080 \
+      -e AWS_REGION="$REGION" \
+      -e DB_SECRET_NAME="${var.db_secret_name}" \
+      -e REDIS_SECRET_NAME="${var.redis_secret_name}" \
+      "$ECR_REPO:$IMAGE_TAG"
 
     echo "[BOOTSTRAP] Container started successfully."
   EOF
