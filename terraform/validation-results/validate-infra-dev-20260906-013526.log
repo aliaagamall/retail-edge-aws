@@ -1,0 +1,57 @@
+Logging this run to: ./validation-results/validate-infra-dev-20260906-013526.log
+
+== Reading Terraform outputs ==
+[PASS] Terraform outputs loaded (region: us-east-1)
+
+== Networking ==
+[PASS] VPC exists (vpc-066ca569c3fc71fec)
+[PASS] Subnets present (6 found, expected 6)
+
+== ALB ==
+[PASS] ALB is active (internal-retailedge-dev-alb-571785511.us-east-1.elb.amazonaws.com)
+[INFO] ALB targets not healthy yet () - no app container deployed (expected at this stage)
+
+== Compute / Auto Scaling Group ==
+[PASS] ASG exists (desired=0, in-service=0)
+
+== RDS ==
+[PASS] RDS instance available (retailedge-dev-mysql)
+
+== ElastiCache (Redis) ==
+[PASS] Redis replication group available (retailedge-dev-redis)
+
+== CloudFront ==
+[PASS] CloudFront distribution deployed (d1fm0upwizc34f.cloudfront.net)
+
+== WAF ==
+[PASS] WAF Web ACL exists (retailedge-dev-waf)
+
+== ECR ==
+[INFO] ECR repo exists but has 0 images - no image pushed yet (expected at this stage)
+
+== S3 (web bucket) ==
+[INFO] Web bucket 'retailedge-dev-web-631447263037' is empty - React build not synced yet (expected at this stage)
+
+== Monitoring ==
+[PASS] SNS email subscription confirmed
+  Alarms found: 12
+  - retailedge-dev-alb-5xx-errors: OK
+  - retailedge-dev-alb-latency-p95: OK
+  - retailedge-dev-alb-unhealthy-hosts: OK
+  - retailedge-dev-cloudfront-5xx-error-rate: OK
+  - retailedge-dev-ec2-cpu-high: OK
+  - retailedge-dev-ec2-memory-high: OK
+  - retailedge-dev-rds-connections-high: OK
+  - retailedge-dev-rds-cpu-high: OK
+  - retailedge-dev-rds-free-storage-low: OK
+  - retailedge-dev-redis-cpu-high: OK
+  - retailedge-dev-redis-evictions-high: OK
+  - retailedge-dev-waf-blocked-requests-spike: OK
+[PASS] 12 alarms exist in CloudWatch
+[PASS] Dashboard exists (retailedge-dev-overview)
+
+== Summary ==
+PASS: 12   INFO: 3   FAIL: 0
+
+Infrastructure looks correctly provisioned.
+INFO items above are expected until the app deployment pipeline is built.
