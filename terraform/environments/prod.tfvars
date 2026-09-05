@@ -36,3 +36,5 @@ black_friday_scale_down_hour  = 6
 black_friday_min_size         = 10
 black_friday_max_size         = 17
 black_friday_desired_capacity = 15
+
+alert_email = "oncall@team.com"

@@ -248,3 +248,11 @@ variable "black_friday_desired_capacity" {
   type    = number
   default = 15
 }
+
+# ---------- Monitoring ----------
+
+variable "alert_email" {
+  description = "Email address that receives CloudWatch alarm notifications via SNS"
+  type        = string
+}
+

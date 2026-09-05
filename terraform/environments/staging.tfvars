@@ -22,3 +22,5 @@ app_instance_type = "t3.micro"
 asg_min_size         = 2
 asg_max_size         = 6
 asg_desired_capacity = 2
+
+alert_email = "staging-alerts@team.com"
