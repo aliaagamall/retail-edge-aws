@@ -2,8 +2,7 @@
 
 This repository documents and implements RetailEdge Inc.'s migration from a bare-metal, co-located stack to AWS, using a three-tier architecture provisioned entirely with Terraform.
 
-Companion repo (application code, Dockerfile, GitHub Actions workflow):
-https://github.com/aliaagamall/retailedge-app/tree/feat/retailedge-aws-integration
+Companion repo (application code, Dockerfile, GitHub Actions workflow): [App Repo](https://github.com/aliaagamall/retailedge-app/tree/feat/retailedge-aws-integration)
 
 ---
 
@@ -58,7 +57,7 @@ retail-edge-aws/
 
 ## 3. Architecture Evolution
 
-The `diagrams/architecture/` folder tracks how the design evolved. Each file is a draw.io diagram; open with https://app.diagrams.net or the draw.io desktop app.
+The `diagrams/architecture/` folder tracks how the design evolved. Each file is a draw.io diagram; open with [Full Diagram](https://drive.google.com/file/d/1f83UDA0XaJHnHJWrDPZP6-UHTxyVNDM8/view?usp=sharing) or the draw.io desktop app.
 
 | File                                              | Stage                          | Summary |
 |----------------------------------------------------|----------------------------------|-----------|
