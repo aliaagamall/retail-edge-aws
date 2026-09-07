@@ -2,7 +2,7 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# Latest Amazon Linux 2023 AMI 
+# Latest Amazon Linux 2023 AMI
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -20,11 +20,6 @@ data "aws_ami" "al2023" {
 
 data "aws_region" "current" {}
 
-# User data: base AMI setup + conditional application bootstrap.
-# CodeDeploy is no longer part of this architecture - deployment
-# orchestration happens via Lambda + SSM (added separately).
-# This script only handles the initial container start on boot, reading
-# the current image tag from SSM Parameter Store.
 locals {
   user_data = <<-EOF
     #!/bin/bash
@@ -33,24 +28,19 @@ locals {
     dnf update -y
 
     # Docker
-
     dnf install -y docker
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ec2-user
 
     # AWS CLI
-
     dnf install -y awscli
 
     # SSM Agent
-
-    # Pre-installed on Amazon Linux 2023, ensure it is running.
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
 
     # CloudWatch Agent
-    # Collects EC2 metrics that are not available by default, such as memory utilization.
     dnf install -y amazon-cloudwatch-agent
 
     cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CWCONFIG'
@@ -90,46 +80,40 @@ locals {
       -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
       -s
 
-    # Application bootstrap
-    # The application retrieves DB and Redis secrets from AWS Secrets Manager at container startup.
-    # No secrets are stored in User Data.
+    # Deployment configuration and script
+    mkdir -p /opt/retailedge
 
-    REGION="${data.aws_region.current.name}"
-    ECR_REPO="${var.ecr_repository_url}"
-    SSM_PARAM="${var.ssm_parameter_name}"
+    cat > /opt/retailedge/config.env <<CONFIG
+    REGION=${data.aws_region.current.name}
+    ECR_REPO=${var.ecr_repository_url}
+    DB_SECRET_NAME=${var.db_secret_name}
+    REDIS_SECRET_NAME=${var.redis_secret_name}
+    CONFIG
 
+    cat > /opt/retailedge/deploy.sh <<'DEPLOY_SCRIPT'
+    ${file("${path.module}/files/deploy.sh")}
+    DEPLOY_SCRIPT
+
+    chmod +x /opt/retailedge/deploy.sh
+
+    # Deploy the image currently recorded in SSM, if one exists.
     IMAGE_TAG=$(aws ssm get-parameter \
-      --name "$SSM_PARAM" \
-      --region "$REGION" \
+      --name "${var.ssm_parameter_name}" \
+      --region "${data.aws_region.current.name}" \
       --query "Parameter.Value" \
       --output text 2>/dev/null || echo "none")
 
     if [ "$IMAGE_TAG" = "none" ] || [ -z "$IMAGE_TAG" ]; then
-      echo "[BOOTSTRAP] No image recorded yet in $SSM_PARAM - instance ready, waiting for first deployment."
-      exit 0
+      echo "[BOOTSTRAP] No image recorded yet - instance ready."
+    else
+      echo "[BOOTSTRAP] Found image tag: $IMAGE_TAG - deploying."
+      /opt/retailedge/deploy.sh "$IMAGE_TAG" || \
+        echo "[BOOTSTRAP] Initial deployment failed."
     fi
-
-    echo "[BOOTSTRAP] Found image tag: $IMAGE_TAG - pulling and starting container."
-
-    aws ecr get-login-password --region "$REGION" \
-      | docker login --username AWS --password-stdin "$ECR_REPO"
-
-    docker pull "$ECR_REPO:$IMAGE_TAG"
-
-    docker run -d \
-      --name retailedge-app \
-      --restart unless-stopped \
-      -p 8080:8080 \
-      -e AWS_REGION="$REGION" \
-      -e DB_SECRET_NAME="${var.db_secret_name}" \
-      -e REDIS_SECRET_NAME="${var.redis_secret_name}" \
-      "$ECR_REPO:$IMAGE_TAG"
-
-    echo "[BOOTSTRAP] Container started successfully."
   EOF
 }
 
-# Launch Template 
+# Launch Template
 resource "aws_launch_template" "app" {
   name_prefix   = "${local.name_prefix}-app-"
   image_id      = data.aws_ami.al2023.id
@@ -150,6 +134,7 @@ resource "aws_launch_template" "app" {
 
   block_device_mappings {
     device_name = "/dev/xvda"
+
     ebs {
       volume_size           = 30
       volume_type           = "gp3"
@@ -160,6 +145,7 @@ resource "aws_launch_template" "app" {
 
   tag_specifications {
     resource_type = "instance"
+
     tags = {
       Name = "${local.name_prefix}-app-instance"
     }
@@ -170,7 +156,7 @@ resource "aws_launch_template" "app" {
   }
 }
 
-# Auto Scaling Group 
+# Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
   name                = "${local.name_prefix}-app-asg"
   vpc_zone_identifier = var.app_subnet_ids
@@ -210,8 +196,7 @@ resource "aws_autoscaling_policy" "cpu_target_tracking" {
 }
 
 locals {
-  black_friday_scale_up_cron = "0 ${var.scale_up_hour} ${var.scale_up_day} ${var.scale_up_month} *"
-
+  black_friday_scale_up_cron   = "0 ${var.scale_up_hour} ${var.scale_up_day} ${var.scale_up_month} *"
   black_friday_scale_down_cron = "0 ${var.scale_down_hour} ${var.scale_down_day} ${var.scale_down_month} *"
 }
 
