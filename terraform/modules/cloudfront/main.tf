@@ -42,6 +42,26 @@ resource "aws_cloudfront_vpc_origin" "alb" {
   }
 }
 
+resource "aws_cloudfront_function" "api_rewrite" {
+  name    = "${local.name_prefix}-api-rewrite"
+  runtime = "cloudfront-js-2.0"
+  comment = "Remove /api prefix before forwarding requests to ALB"
+
+  publish = true
+
+  code = <<-EOF
+function handler(event) {
+    var request = event.request;
+
+    if (request.uri.startsWith('/api/')) {
+        request.uri = request.uri.substring(4);
+    }
+
+    return request;
+}
+EOF
+}
+
 resource "aws_cloudfront_distribution" "this" {
   enabled      = true
   comment      = "${local.name_prefix} distribution"
@@ -78,14 +98,29 @@ resource "aws_cloudfront_distribution" "this" {
 
   # /api/* goes to the internal ALB
   ordered_cache_behavior {
-    path_pattern             = var.api_path_pattern
-    target_origin_id         = "alb-api"
-    viewer_protocol_policy   = "https-only"
-    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    path_pattern           = var.api_path_pattern
+    target_origin_id       = "alb-api"
+    viewer_protocol_policy = "https-only"
+
+    allowed_methods = [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "PUT",
+      "POST",
+      "PATCH",
+      "DELETE"
+    ]
+
     cached_methods           = ["GET", "HEAD"]
     compress                 = false
     cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.api_rewrite.arn
+    }
   }
 
   restrictions {

@@ -3,6 +3,10 @@ locals {
   https_enabled = var.certificate_arn != ""
 }
 
+data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 # ALB Security Group
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
@@ -32,6 +36,24 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_from_cloudfront" {
+  security_group_id = aws_security_group.alb.id
+  description       = "Allow CloudFront VPC Origin to reach ALB"
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_to_app" {
+  security_group_id            = aws_security_group.alb.id
+  description                  = "Allow ALB to reach application tier"
+  referenced_security_group_id = aws_security_group.app.id
+  from_port                    = 8080
+  to_port                      = 8080
+  ip_protocol                  = "tcp"
 }
 
 # Application Security Group
