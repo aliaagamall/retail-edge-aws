@@ -2,41 +2,53 @@
 
 ## 1. Architecture Overview
 
-Request flow:
+RetailEdge uses a three-tier AWS architecture with CloudFront as the public entry point.
+
+### Request Flow
 
 ```
 User
   |
   v
-CloudFront  (WAF attached)
+CloudFront
   |
-  |-- default behavior "/*"     --> S3 (static React build)
-  |-- ordered behavior "/api/*" --> ALB (internal, via VPC Origin)
-                                        |
-                                        v
-                              EC2 Auto Scaling Group
-                              (private app subnet)
-                                        |
-                          -------------------------------
-                          |                             |
-                          v                             v
-                  RDS MySQL (private)         ElastiCache Redis (private)
+  |-- default behavior "/*"
+  |       --> S3 (static React build)
+  |
+  |-- ordered behavior "/api/*"
+          --> CloudFront Function
+                /api/* -> /*
+                    |
+                    v
+                VPC Origin
+                    |
+                    v
+                Internal ALB
+                    |
+                    v
+                EC2 Auto Scaling Group
+                    |
+                    v
+                Docker Application
+                  |       |
+                  v       v
+              RDS MySQL  ElastiCache Redis
 ```
 
-Key design points:
+### Key Design Points
 
-- The ALB is internal (not public). It is only reachable through CloudFront's VPC Origin. It has no public IP.
-- WAF is attached at the CloudFront level (scope = CLOUDFRONT), not on the ALB, since the ALB is internal.
-- EC2 instances sit in a private subnet with no NAT Gateway. They reach ECR / SSM / Secrets Manager through VPC Interface Endpoints, and S3 through a Gateway Endpoint. No NAT cost, no direct internet egress from the app subnet.
-- RDS and Redis sit in a separate database subnet tier, reachable only from the App Security Group.
-
-Network tiers:
-
-| Tier        | Purpose                          | Internet access                |
-|-------------|-----------------------------------|---------------------------------|
-| Public      | Reserved for future use (NAT/bastion) | Has route to Internet Gateway |
-| Application | EC2 instances                     | Outbound only via VPC Endpoints |
-| Database    | RDS, Redis                        | None                            |
+- The ALB is internal and has no public IP.
+- The ALB is reachable through CloudFront's VPC Origin.
+- CloudFront routes `/api/*` requests to the internal ALB.
+- A CloudFront Function runs at viewer-request time and removes the `/api` prefix before forwarding the request.
+- For example, `/api/health` is forwarded to the application as `/health`.
+- The ALB allows CloudFront origin-facing traffic through the AWS-managed CloudFront origin-facing prefix list.
+- The ALB communicates with the application tier on port 8080 using Security Group references.
+- WAF is attached at the CloudFront level with `CLOUDFRONT` scope.
+- EC2 instances run in private application subnets.
+- EC2 instances have no direct internet access and use VPC endpoints for AWS service communication.
+- RDS and Redis are isolated in the database tier and accept traffic only from the Application Security Group.
+- Application secrets are stored in AWS Secrets Manager and retrieved at runtime.
 
 ---
 
@@ -44,192 +56,508 @@ Network tiers:
 
 ```
 terraform/
-├── backend.tf              S3 backend (state) + native locking
-├── providers.tf             aws / tls / random providers
-├── variables.tf              root-level variables
-├── outputs.tf                 all outputs (read by validation scripts)
+├── backend.tf
+├── providers.tf
+├── variables.tf
+├── outputs.tf
 ├── terraform.tfvars.example
 │
-├── networking.tf, security-groups.tf, vpc-endpoints.tf
-├── alb.tf, compute.tf, ecr.tf, ssm-parameters.tf
-├── rds.tf, elasticache.tf, s3.tf, s3-web.tf
-├── cloudfront.tf, waf.tf, iam.tf, monitoring.tf
+├── networking.tf
+├── security-groups.tf
+├── vpc-endpoints.tf
+├── alb.tf
+├── compute.tf
+├── ecr.tf
+├── ssm-parameters.tf
+├── rds.tf
+├── elasticache.tf
+├── s3.tf
+├── s3-web.tf
+├── cloudfront.tf
+├── waf.tf
+├── iam.tf
+├── lambda-deploy.tf
+└── monitoring.tf
 │
-├── modules/                  each module has main.tf + variables.tf + outputs.tf
-│   ├── networking/            VPC, subnets (public/app/db), route tables
-│   ├── security-groups/       all security groups (alb, app, rds, redis, endpoints)
-│   ├── vpc-endpoints/         Interface + Gateway endpoints
-│   ├── alb/                   Internal ALB + target group + listeners
-│   ├── compute/                Launch Template + ASG + scheduled scaling (Black Friday)
-│   ├── ecr/                    ECR repo + lifecycle policy
-│   ├── ssm-parameters/         parameter storing the current deployed image tag
-│   ├── rds/                    MySQL instance + Secrets Manager secret
-│   ├── elasticache/            Redis replication group + Secrets Manager secret
-│   ├── s3/                     general purpose bucket (assets) - app role access only
-│   ├── s3-web/                 bucket for the React build (read by CloudFront)
-│   ├── cloudfront/              Distribution + OAC + VPC Origin
-│   ├── waf/                     Web ACL (CLOUDFRONT scope) + managed rules + rate limit
-│   ├── iam/                      EC2 role + GitHub OIDC deploy role
-│   └── monitoring/                SNS + CloudWatch alarms + dashboard
+├── lambda/
+│   └── deploy/
+│       └── handler.py
+│
+├── modules/
+│   ├── networking/
+│   ├── security-groups/
+│   ├── vpc-endpoints/
+│   ├── alb/
+│   ├── compute/
+│   ├── ecr/
+│   ├── ssm-parameters/
+│   ├── rds/
+│   ├── elasticache/
+│   ├── s3/
+│   ├── s3-web/
+│   ├── cloudfront/
+│   ├── waf/
+│   ├── iam/
+│   ├── lambda-deploy/
+│   └── monitoring/
 │
 ├── environments/
-│   ├── dev.tfvars      + dev.backend.hcl
-│   ├── staging.tfvars  + staging.backend.hcl
-│   └── prod.tfvars     + prod.backend.hcl
+│   ├── dev.tfvars
+│   ├── dev.backend.hcl
+│   ├── staging.tfvars
+│   ├── staging.backend.hcl
+│   ├── prod.tfvars
+│   └── prod.backend.hcl
 │
 ├── scripts/
-│   ├── setup-backend.sh        creates the S3 state bucket (one time only)
-│   ├── cleanup-backend.sh      deletes the state bucket (destructive)
-│   └── validation/              per-module post-apply check scripts (use AWS CLI)
+│   ├── setup-backend.sh
+│   ├── cleanup-backend.sh
+│   └── validation/
+│       ├── common.sh
+│       ├── validate-all.sh
+│       ├── validate-api.sh
+│       └── ...
 │
-└── validation-results/          output logs from the last validation runs
+└── validation-results/
+    ├── api-validation.txt
+    └── ...
 ```
 
 ---
 
 ## 3. Environments
 
-There are three environments: `dev`, `staging`, `prod`. Each has:
+There are three environments:
 
-- `environments/<env>.tfvars` - environment-specific values (instance sizes, retention, etc.)
-- `environments/<env>.backend.hcl` - sets the state file `key` inside the shared S3 bucket
+- `dev`
+- `staging`
+- `prod`
 
-Differences between environments:
+Each environment has:
 
-| Setting                          | dev      | staging  | prod                       |
-|-----------------------------------|----------|----------|-----------------------------|
-| RDS deletion protection           | No       | Yes      | Yes                         |
-| RDS backup retention              | 0 days   | 7 days   | 7 days                      |
-| Secrets recovery window           | 0 days   | 30 days  | 30 days                     |
-| ALB deletion protection           | No       | No       | Yes                         |
-| Black Friday scheduled scaling    | No       | No       | Yes (Nov 25 to Nov 29)      |
-| App instance type                 | t3.micro | t3.micro | t3.small                    |
+- `environments/<env>.tfvars`
+- `environments/<env>.backend.hcl`
+
+Environment-specific settings include instance types, RDS retention, deletion protection, and scaling configuration.
+
+| Setting                        | dev      | staging  | prod     |
+|--------------------------------|----------|----------|----------|
+| RDS deletion protection        | No       | Yes      | Yes      |
+| RDS backup retention           | 0 days   | 7 days   | 7 days   |
+| Secrets recovery window        | 0 days   | 30 days  | 30 days  |
+| ALB deletion protection        | No       | No       | Yes      |
+| Black Friday scheduled scaling | No       | No       | Yes      |
 
 ---
 
-## 4. First-Time Setup (Backend)
+## 4. First-Time Setup
 
-State is stored in a single S3 bucket, `retailedge-tfstate` (same bucket for all environments, different `key` per environment). Locking uses `use_lockfile = true` (S3 native locking, no DynamoDB table).
+Terraform state is stored in the shared S3 bucket:
+
+```
+retailedge-tfstate
+```
+
+Each environment uses a different backend key.
+
+S3 native locking is enabled with:
+
+```
+use_lockfile = true
+```
+
+### Create the Backend
+
+Run once:
 
 ```bash
-# One time only, before any terraform init
 ./scripts/setup-backend.sh
 ```
 
-Then, per environment:
+### Initialize an Environment
+
+For `dev`:
 
 ```bash
 terraform init -backend-config=environments/dev.backend.hcl
-terraform plan  -var-file=environments/dev.tfvars
-terraform apply -var-file=environments/dev.tfvars
 ```
 
-Switching environments (e.g. dev to staging) requires:
+### Plan
 
 ```bash
-terraform init -reconfigure -backend-config=environments/staging.backend.hcl
+terraform plan \
+  -var-file=environments/dev.tfvars \
+  -out=tfplan-dev
 ```
 
-Warning: `scripts/cleanup-backend.sh` deletes the state bucket including all object versions. Only run this if certain.
+### Apply
+
+```bash
+terraform apply tfplan-dev
+```
+
+### Switch Environments
+
+For example, to switch to `staging`:
+
+```bash
+terraform init -reconfigure \
+  -backend-config=environments/staging.backend.hcl
+```
+
+> **Warning**  
+> `scripts/cleanup-backend.sh` is destructive. It deletes the Terraform state bucket and its object versions.  
+> Only run it when the backend itself needs to be permanently removed.
 
 ---
 
-## 5. Required Variables (No Defaults)
+## 5. Required Variables
 
-These variables must be set explicitly, they have no default value:
+The following variables must be explicitly configured:
 
-| Variable          | Purpose                                                                 |
-|--------------------|--------------------------------------------------------------------------|
-| `github_org`       | GitHub org/username allowed to assume the deploy role via OIDC          |
-| `github_repo`      | GitHub repo name allowed to assume the deploy role via OIDC             |
-| `alert_email`      | Email that receives CloudWatch alarms via SNS - must confirm the subscription email after first apply |
-| `certificate_arn`  | Leave as `""` until a domain and ACM certificate exist. While empty, the ALB and WAF run HTTP-only |
+| Variable          | Purpose                                                                  |
+|-------------------|--------------------------------------------------------------------------|
+| `github_org`      | GitHub organization/username allowed to assume the deployment role       |
+| `github_repo`     | GitHub repository allowed to assume the deployment role                  |
+| `alert_email`     | Email used for CloudWatch alarm notifications                            |
+| `certificate_arn` | ACM certificate ARN; leave empty when HTTPS on the ALB is not configured |
 
-Current values: `github_org/github_repo = aliaagamall/retailedge-app`, branch `main`.
+The GitHub deployment identity is restricted to the configured repository and branch.
 
 ---
 
-## 6. Validation Scripts
+## 6. Security Architecture
 
-After each apply (or after changing a specific module), run its matching validation script in `scripts/validation/`:
+Security Groups follow least-privilege communication between tiers.
+
+```
+CloudFront
+    |
+    | HTTP :80
+    v
+ALB SG
+    |
+    | TCP :8080
+    v
+App SG
+    |
+    |---- TCP :3306 ----> RDS SG
+    |
+    |---- TCP :6379 ----> Redis SG
+    |
+    |---- TCP :443 -----> VPC Endpoint SG
+```
+
+### ALB
+
+The ALB is internal.
+
+CloudFront access is allowed using the AWS-managed prefix list:
+
+```
+com.amazonaws.global.cloudfront.origin-facing
+```
+
+The prefix list is looked up dynamically by Terraform instead of hardcoding its ID.
+
+The ALB can reach the application tier only on port 8080.
+
+### Application
+
+The Application Security Group accepts traffic on port 8080 only from the ALB Security Group.
+
+The application uses VPC endpoints to communicate with AWS services without requiring a NAT Gateway.
+
+### Database
+
+- RDS accepts MySQL traffic only from the Application Security Group.
+- Redis accepts Redis traffic only from the Application Security Group.
+
+---
+
+## 7. Deployment Pipeline
+
+Application deployment uses GitHub Actions, ECR, Lambda, SSM, and the EC2 instances managed by the Auto Scaling Group.
+
+### Deployment Flow
+
+```
+GitHub Actions
+      |
+      | Build Docker image
+      v
+     ECR
+      |
+      | Push image tagged with commit SHA
+      v
+Invoke Lambda
+      |
+      v
+Lambda Deployment Orchestrator
+      |
+      |-- Read current image tag from SSM
+      |
+      |-- Find InService ASG instances
+      |
+      |-- Send SSM Run Command
+      v
+EC2 instances
+      |
+      v
+/opt/retailedge/deploy.sh
+      |
+      |-- Login to ECR
+      |-- Pull requested image
+      |-- Stop/remove current container
+      |-- Start new container
+      |-- Run /health checks
+      v
+Application
+```
+
+### Successful Deployment
+
+If all instances become healthy:
+
+```
+New image
+   |
+   v
+All instances healthy
+   |
+   v
+Update SSM current-image parameter
+```
+
+### Failed Deployment
+
+If an instance fails:
+
+```
+Deployment failure
+      |
+      v
+Lambda identifies updated instances
+      |
+      v
+Rollback to previous image
+      |
+      v
+Health check rollback
+```
+
+If rollback itself fails, Lambda publishes an alert through SNS and reports a mixed deployment state.
+
+### SSM Image Parameter
+
+The currently deployed image tag is stored in:
+
+```
+/retailedge/dev/current-image
+```
+
+Terraform ignores changes to this parameter after initial provisioning so the deployment pipeline can manage its value.
+
+### ECR
+
+ECR uses immutable image tags.
+
+Each deployment therefore uses a new image tag, typically the Git commit SHA.
+
+### CodeDeploy
+
+CodeDeploy was removed from the architecture.
+
+Deployment orchestration is implemented using:
+
+```
+Lambda + SSM Run Command
+```
+
+---
+
+## 8. CloudFront API Routing
+
+CloudFront separates static frontend traffic from API traffic.
+
+```
+/*
+  |
+  v
+S3
+
+/api/*
+  |
+  v
+CloudFront Function
+  |
+  | Remove "/api"
+  v
+VPC Origin
+  |
+  v
+Internal ALB
+```
+
+**Example:**
+
+```
+Client request:
+https://<cloudfront-domain>/api/health
+
+CloudFront Function:
+    /api/health -> /health
+
+ALB/Application:
+    /health
+```
+
+This allows the application to keep normal API routes without requiring `/api` in the application itself, while CloudFront still uses `/api/*` to distinguish API traffic from the static frontend.
+
+---
+
+## 9. Validation
+
+Validation scripts perform real AWS checks using the AWS CLI.
+
+They are not limited to:
+
+```
+terraform validate
+```
+
+### Run an Individual Validation
 
 ```bash
-cd terraform
 ./scripts/validation/validate-networking.sh
 ./scripts/validation/validate-alb.sh
-./scripts/validation/validate-rds.sh
-# ... one script per module
+./scripts/validation/validate-api.sh
+```
 
-# or run everything at once:
+### Run the Full Validation Suite
+
+```bash
 ./scripts/validation/validate-all.sh
 ```
 
-Each script performs real checks against AWS (not just `terraform validate`) and saves its output to `validation-results/`. There is also `validate-infra.sh`, a broader script that checks the whole stack and separates results into:
+### API End-to-End Validation
 
-- FAIL: a real problem that needs fixing
-- INFO: expected at the current stage (for example: ALB targets unhealthy because no container is running yet, or the web bucket is empty because the React build has not been synced yet)
+The API validation script:
 
-Requirements: `aws cli` configured, `jq`, and `terraform` (must be run from inside the `terraform/` directory).
+```
+scripts/validation/validate-api.sh
+```
 
----
+tests:
 
-## 7. Current Status (dev)
+```
+Client
+  -> CloudFront
+  -> /api/* behavior
+  -> CloudFront Function
+  -> VPC Origin
+  -> Internal ALB
+  -> EC2
+  -> Docker Application
+  -> MySQL
+  -> Redis
+```
 
-Based on the latest `validation-results/validate-infra-dev-*.log`:
+It verifies:
 
-| Component            | Status                                                    |
-|------------------------|-------------------------------------------------------------|
-| Networking             | OK                                                          |
-| ALB                     | OK (active, internal)                                       |
-| RDS                     | OK (available)                                              |
-| Redis                   | OK (available)                                              |
-| CloudFront              | OK (deployed)                                                |
-| WAF                     | OK                                                            |
-| Monitoring              | OK (alarms + dashboard)                                       |
-| Auto Scaling Group      | Desired capacity = 0 (scaled down manually, likely to save cost while waiting on the deploy pipeline) |
-| ECR                     | Repo exists but has 0 images pushed                           |
-| Web bucket (S3)         | Empty, React build not synced yet                             |
-| SSM current-image param | Still at placeholder value `none`                             |
+- HTTP status 200
+- Application status is `ok`
+- MySQL is connected
+- Redis is connected
 
-Summary: the infrastructure is fully provisioned, but the application itself has not been deployed onto it yet.
+The result is saved to:
 
----
+```
+validation-results/api-validation.txt
+```
 
-## 8. Pending Work: Deployment Pipeline (Lambda)
+The successful end-to-end test returned:
 
-Current state:
-
-- The EC2 bootstrap script (in `modules/compute/main.tf`) reads the image tag from the SSM Parameter on boot only. If it finds `none`, it exits cleanly without doing anything. This is intentional, it confirms the conditional logic works (see `validate-ssm-and-bootstrap.sh`).
-- The GitHub Actions role (in `modules/iam`) only has permission to push to ECR and to run `ssm:PutParameter`. There is currently no mechanism that takes a newly pushed image and actually deploys it to the running instances. Pushing to ECR and updating the SSM parameter alone do not deploy anything to a live instance.
-- Planned (not yet implemented): a Lambda function, triggered after the ECR push (from GitHub Actions), that runs an SSM Run Command against the ASG instances to pull the new image and restart the container.
-- CodeDeploy was previously part of this design and has been fully removed (confirmed in `validate-iam.sh` and `validate-ssm-and-bootstrap.sh`), in favor of the Lambda + SSM approach above.
-
-Implication: if `modules/lambda` does not exist yet in the code, this is intentional, not missing work. It has not been built yet. Once it is built, this README will be updated with a new section describing:
-
-- Where the Lambda module lives
-- What triggers it
-- How the GitHub Actions workflow calls it
-
----
-
-## 9. Other Notes
-
-- No secrets are stored in code or in `user_data`. Everything (DB credentials, Redis auth token) is stored in Secrets Manager and read by the application at runtime.
-- Passwords are randomly generated via `random_password`. Do not set them manually.
-- The SSM parameter holding the current image tag has `lifecycle { ignore_changes = [value] }`. After the first apply, GitHub Actions owns this value, and Terraform will not reset it back to `none` on later applies.
-- ECR is set to `image_tag_mutability = IMMUTABLE`, meaning the same tag cannot be pushed twice. Each deployment needs a new tag.
-- `terraform/docs/dependency-graph.svg` contains a full resource dependency graph (generated via `terraform graph`).
+```json
+{
+  "status": "ok",
+  "mysql": "connected",
+  "redis": "connected"
+}
+```
 
 ---
 
-## 10. Application Repo
+## 10. Monitoring
 
-Application code (not infrastructure) is here:
-https://github.com/aliaagamall/retailedge-app/tree/feat/retailedge-aws-integration
+Monitoring uses native AWS services:
 
-Expected GitHub Actions workflow steps:
+- CloudWatch alarms
+- CloudWatch dashboard
+- SNS notifications
 
-1. Build the Docker image
-2. Push to ECR (using the OIDC role defined here in `modules/iam`)
-3. Update the SSM parameter with the new tag
-4. (Pending) Invoke the Lambda function to perform the actual deployment to running instances - see Section 8
+The monitoring layer tracks application and load-balancer health, including CPU utilization, ALB errors, and latency.
+
+SNS sends alarm notifications to the configured alert email.
+
+---
+
+## 11. Cost Considerations
+
+The architecture avoids a NAT Gateway for the private application tier.
+
+AWS service access is provided through VPC endpoints where required.
+
+The `dev` environment can be scaled down or destroyed when it is not being used for testing.
+
+For temporary testing environments, destroy the infrastructure after validation:
+
+```bash
+terraform destroy -var-file=environments/dev.tfvars
+```
+
+If ECR contains images, the repository must be emptied before Terraform can delete it unless the ECR resource is configured with `force_delete = true`.
+
+---
+
+## 12. Application Repository
+
+Application code is maintained separately from the infrastructure repository.
+
+The application repository is:
+
+```
+aliaagamall/retailedge-app
+```
+
+The expected deployment workflow is:
+
+1. Build Docker image
+2. Push image to ECR
+3. Invoke deployment Lambda
+4. Lambda deploys the image using SSM
+5. Instances perform health checks
+6. Lambda updates the current image tag
+7. Failed deployments are rolled back
+
+---
+
+## 13. Current Infrastructure State
+
+The architecture and deployment flow have been provisioned and end-to-end validated in the development environment.
+
+The final API validation successfully verified:
+
+```
+CloudFront
+    -> VPC Origin
+    -> Internal ALB
+    -> EC2
+    -> Docker
+    -> MySQL
+    -> Redis
+```
+
+The development infrastructure was subsequently destroyed when no longer needed in order to avoid unnecessary AWS costs.
+
+The Terraform code remains available to recreate the environment when required.
