@@ -30,3 +30,8 @@ variable "secrets_arns" {
   description = "ARNs of the Secrets Manager secrets the EC2 role may read"
   type        = list(string)
 }
+
+variable "deploy_lambda_arn" {
+  description = "ARN of the deployment Lambda that GitHub Actions is allowed to invoke"
+  type        = string
+}

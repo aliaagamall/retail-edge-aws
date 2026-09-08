@@ -187,6 +187,17 @@ data "aws_iam_policy_document" "github_deploy" {
       "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/retailedge/*"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:InvokeFunction",
+    ]
+
+    resources = [
+      var.deploy_lambda_arn
+    ]
+  }
 }
 
 resource "aws_iam_policy" "github_deploy" {
