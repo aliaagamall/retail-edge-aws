@@ -1,0 +1,34 @@
+RetailEdge API Validation
+==========================
+
+CloudFront Domain: d226x677clewmc.cloudfront.net
+API Endpoint:      https://d226x677clewmc.cloudfront.net/api/health
+
+Test: CloudFront API Health Check
+---------------------------------
+HTTP Status: 200
+Response:
+{"status":"ok","mysql":"connected","redis":"connected"}
+
+Application Health:
+  status: OK
+
+MySQL:
+  connected: YES
+
+Redis:
+  connected: YES
+
+End-to-End Flow:
+  Client
+    -> CloudFront
+    -> CloudFront /api/* behavior
+    -> CloudFront Function (/api/health -> /health)
+    -> VPC Origin
+    -> Internal ALB
+    -> EC2
+    -> Docker Application
+    -> MySQL
+    -> Redis
+
+Result: PASSED
