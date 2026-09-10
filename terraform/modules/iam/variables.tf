@@ -26,6 +26,14 @@ variable "github_branch" {
   default     = "main"
 }
 
+variable "github_owner_id" {
+  type = string
+}
+
+variable "github_repository_id" {
+  type = string
+}
+
 variable "secrets_arns" {
   description = "ARNs of the Secrets Manager secrets the EC2 role may read"
   type        = list(string)

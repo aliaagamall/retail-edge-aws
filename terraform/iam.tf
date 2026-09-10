@@ -1,12 +1,14 @@
 module "iam" {
   source = "./modules/iam"
 
-  project_name  = var.project_name
-  environment   = var.environment
-  aws_region    = var.aws_region
-  github_org    = var.github_org
-  github_repo   = var.github_repo
-  github_branch = "feat/retailedge-aws-integration"
+  project_name         = var.project_name
+  environment          = var.environment
+  aws_region           = var.aws_region
+  github_org           = var.github_org
+  github_repo          = var.github_repo
+  github_branch        = "feat/retailedge-aws-integration"
+  github_owner_id      = "178617550"
+  github_repository_id = "1337389966"
 
   secrets_arns = [
     module.rds.db_secret_arn,

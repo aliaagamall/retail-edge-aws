@@ -6,7 +6,7 @@ APP_REPO="${APP_REPO:-aliaagamall/retailedge-app}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-TERRAFORM_DIR="$SCRIPT_DIR/../terraform"
+TERRAFORM_DIR="$SCRIPT_DIR/.."
 
 echo "== RetailEdge GitHub Configuration Sync =="
 
