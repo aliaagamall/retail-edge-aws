@@ -6,9 +6,9 @@ module "iam" {
   aws_region           = var.aws_region
   github_org           = var.github_org
   github_repo          = var.github_repo
-  github_branch        = "feat/retailedge-aws-integration"
-  github_owner_id      = "178617550"
-  github_repository_id = "1337389966"
+  github_branch        = var.github_branch
+  github_owner_id      = var.github_owner_id
+  github_repository_id = var.github_repository_id
 
   secrets_arns = [
     module.rds.db_secret_arn,

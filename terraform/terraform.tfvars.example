@@ -2,5 +2,9 @@ aws_region   = "us-east-1"
 project_name = "retailedge"
 environment  = "dev"
 
-github_org  = "your-github-username"
-github_repo = "your-repository-name"
+github_org  = "app-github-username"
+github_repo = "app-repository-name"
+
+github_branch        = "branch-name"
+github_owner_id      = "app-github-owner-id"
+github_repository_id = "app-github-repository-id"

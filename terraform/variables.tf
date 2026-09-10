@@ -256,3 +256,18 @@ variable "alert_email" {
   type        = string
 }
 
+variable "github_branch" {
+  description = "GitHub branch allowed to deploy through OIDC"
+  type        = string
+}
+
+variable "github_owner_id" {
+  description = "GitHub owner ID used in the immutable OIDC subject"
+  type        = string
+}
+
+variable "github_repository_id" {
+  description = "GitHub repository ID used in the immutable OIDC subject"
+  type        = string
+}
+
