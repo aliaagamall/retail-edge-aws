@@ -160,3 +160,8 @@ output "distribution_domain_name" {
 output "current_image_parameter_name" {
   value = module.ssm_parameters.current_image_parameter_name
 }
+
+# Lambda deploy output
+output "deploy_lambda_function_name" {
+  value = module.lambda_deploy.lambda_function_name
+}
