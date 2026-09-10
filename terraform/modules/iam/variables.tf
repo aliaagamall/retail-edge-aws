@@ -35,3 +35,13 @@ variable "deploy_lambda_arn" {
   description = "ARN of the deployment Lambda that GitHub Actions is allowed to invoke"
   type        = string
 }
+
+variable "web_bucket_arn" {
+  description = "ARN of the S3 web bucket GitHub Actions syncs the React build to"
+  type        = string
+}
+
+variable "cloudfront_distribution_arn" {
+  description = "ARN of the CloudFront distribution GitHub Actions invalidates after a frontend deploy"
+  type        = string
+}

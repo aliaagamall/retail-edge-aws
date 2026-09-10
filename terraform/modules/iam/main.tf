@@ -198,6 +198,32 @@ data "aws_iam_policy_document" "github_deploy" {
       var.deploy_lambda_arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      var.web_bucket_arn,
+      "${var.web_bucket_arn}/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation",
+    ]
+
+    resources = [
+      var.cloudfront_distribution_arn
+    ]
+  }
 }
 
 resource "aws_iam_policy" "github_deploy" {

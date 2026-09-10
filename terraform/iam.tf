@@ -13,5 +13,7 @@ module "iam" {
     module.elasticache.redis_secret_arn
   ]
 
-  deploy_lambda_arn = module.lambda_deploy.lambda_function_arn
+  deploy_lambda_arn           = module.lambda_deploy.lambda_function_arn
+  web_bucket_arn              = module.s3_web.bucket_arn
+  cloudfront_distribution_arn = module.cloudfront.distribution_arn
 }
