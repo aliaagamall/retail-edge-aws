@@ -68,6 +68,7 @@ resource "aws_cloudfront_distribution" "this" {
   price_class  = var.price_class
   web_acl_id   = var.waf_web_acl_arn
   http_version = "http2and3"
+  default_root_object = "index.html"
 
   origin {
     domain_name              = var.s3_bucket_regional_domain_name
