@@ -37,6 +37,7 @@ locals {
     dnf install -y awscli
 
     # SSM Agent
+    dnf install -y amazon-ssm-agent
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
 
